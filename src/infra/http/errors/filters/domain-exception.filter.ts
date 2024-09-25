@@ -1,10 +1,12 @@
-import { DomainError } from "@/core/errors/domain-error";
-import { ValidationError } from "@/core/errors/validation.error";
+import { DomainError } from "@/core/domain-error";
+import { ResourceAlreadyExistsError, ValidationError } from "@/domain/errors";
+import { env } from "@/infra/env";
 import { ErrorPresenter } from "@/infra/presenters/error.presenter";
 import {
   ArgumentsHost,
   BadRequestException,
   Catch,
+  ConflictException,
   ExceptionFilter,
   HttpException,
 } from "@nestjs/common";
@@ -26,11 +28,17 @@ export class DomainExceptionFilter implements ExceptionFilter {
         );
         break;
 
+      case ResourceAlreadyExistsError:
+        httpException = new ConflictException(
+          ErrorPresenter.toHttp(409, exception),
+        );
+        break;
+
       default:
         httpException = new InternalServerError(exception.message);
     }
 
-    console.error(exception);
+    if (env.NODE_ENV !== "test") console.error(exception);
 
     response
       .status(httpException.getStatus())
