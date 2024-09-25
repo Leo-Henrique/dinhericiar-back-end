@@ -1,9 +1,14 @@
 import { DomainError } from "@/core/domain-error";
-import { ResourceAlreadyExistsError, ValidationError } from "@/domain/errors";
+import {
+  ExternalServiceError,
+  ResourceAlreadyExistsError,
+  ValidationError,
+} from "@/domain/errors";
 import { env } from "@/infra/env";
 import { ErrorPresenter } from "@/infra/presenters/error.presenter";
 import {
   ArgumentsHost,
+  BadGatewayException,
   BadRequestException,
   Catch,
   ConflictException,
@@ -31,6 +36,12 @@ export class DomainExceptionFilter implements ExceptionFilter {
       case ResourceAlreadyExistsError:
         httpException = new ConflictException(
           ErrorPresenter.toHttp(409, exception),
+        );
+        break;
+
+      case ExternalServiceError:
+        httpException = new BadGatewayException(
+          ErrorPresenter.toHttp(502, exception),
         );
         break;
 
