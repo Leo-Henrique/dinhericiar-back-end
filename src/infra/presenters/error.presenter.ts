@@ -1,4 +1,4 @@
-import { DomainError } from "@/core/errors/domain-error";
+import { DomainError } from "@/core/domain-error";
 import { env } from "../env";
 
 type CustomError = Pick<DomainError, "error" | "message" | "debug">;
