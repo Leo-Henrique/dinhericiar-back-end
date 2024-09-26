@@ -4,7 +4,8 @@ import { resolve } from "path";
 
 export const drizzleConfig = {
   schema: resolve(__dirname, "./schemas/*.schema.ts"),
-  out: resolve(__dirname, "./migrations"),
+  // drizzle doesn't understand absolute paths here, making it impossible to use __dirname
+  out: "./src/infra/database/drizzle/migrations",
   dialect: "postgresql",
   dbCredentials: {
     user: env.POSTGRES_USERNAME,
