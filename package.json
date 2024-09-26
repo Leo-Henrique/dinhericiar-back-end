@@ -21,6 +21,8 @@
     "services:dev:up": "pnpm services:dev up -d",
     "services:dev:down": "pnpm services:dev down",
     "migrate": "drizzle-kit --config ./src/infra/database/drizzle/setup.ts",
+    "migrate:test": "drizzle-kit --config ./test/e2e/drizzle/setup.ts",
+    "migrate:test:generate": "pnpm migrate:test generate",
     "migrate:generate": "pnpm migrate generate",
     "migrate:dev": "pnpm migrate push"
   },

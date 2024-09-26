@@ -1,15 +1,10 @@
 import { env } from "@/infra/env";
-import { defineConfig } from "drizzle-kit";
+import { Config, defineConfig } from "drizzle-kit";
 import { resolve } from "path";
 
-export const DRIZZLE_MIGRATIONS_DIR =
-  env.NODE_ENV === "test"
-    ? resolve(__dirname, "../../../../test/e2e/migrations")
-    : resolve(__dirname, "./migrations");
-
-export default defineConfig({
+export const drizzleConfig = {
   schema: resolve(__dirname, "./schemas/*.schema.ts"),
-  out: DRIZZLE_MIGRATIONS_DIR,
+  out: resolve(__dirname, "./migrations"),
   dialect: "postgresql",
   dbCredentials: {
     user: env.POSTGRES_USERNAME,
@@ -21,4 +16,6 @@ export default defineConfig({
   },
   verbose: true,
   strict: true,
-});
+} satisfies Config;
+
+export default defineConfig(drizzleConfig);
