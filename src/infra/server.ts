@@ -19,6 +19,8 @@ import { env } from "./env";
     },
   );
 
+  app.setGlobalPrefix("v1");
+
   const swaggerDocumentConfig = new DocumentBuilder()
     .setTitle(env.API_NAME)
     .setDescription("")
