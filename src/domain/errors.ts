@@ -30,3 +30,36 @@ export class ExternalServiceError extends DomainError {
     super(message);
   }
 }
+
+export class BadRequestError extends DomainError {
+  public readonly error = "BadRequestError" as const;
+
+  constructor(
+    public message: string,
+    public debug: unknown = null,
+  ) {
+    super(message);
+  }
+}
+
+export class UserActivationTokenExpiredError extends DomainError {
+  public readonly error = "UserActivationTokenExpiredError" as const;
+  public readonly debug = null;
+
+  constructor() {
+    super(
+      "O tempo para ativar sua conta expirou. Faça login para abrir uma nova solicitação.",
+    );
+  }
+}
+
+export class UserAccountAlreadyActivatedError extends DomainError {
+  public readonly error = "UserAccountAlreadyActivatedError" as const;
+  public readonly debug = null;
+
+  constructor() {
+    super(
+      "A sua conta já está ativada. Faça login para utilizar o aplicativo.",
+    );
+  }
+}

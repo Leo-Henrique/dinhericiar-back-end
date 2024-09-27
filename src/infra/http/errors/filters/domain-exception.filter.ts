@@ -1,7 +1,10 @@
 import { DomainError } from "@/core/domain-error";
 import {
+  BadRequestError,
   ExternalServiceError,
   ResourceAlreadyExistsError,
+  UserAccountAlreadyActivatedError,
+  UserActivationTokenExpiredError,
   ValidationError,
 } from "@/domain/errors";
 import { env } from "@/infra/env";
@@ -28,6 +31,9 @@ export class DomainExceptionFilter implements ExceptionFilter {
 
     switch (exception.constructor) {
       case ValidationError:
+      case BadRequestError:
+      case UserActivationTokenExpiredError:
+      case UserAccountAlreadyActivatedError:
         httpException = new BadRequestException(
           ErrorPresenter.toHttp(400, exception),
         );

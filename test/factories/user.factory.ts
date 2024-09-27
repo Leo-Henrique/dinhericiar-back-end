@@ -10,9 +10,15 @@ import { sql } from "drizzle-orm";
 
 type UserFactoryInput = Partial<UserDataDomainCreateInput>;
 
+export type UserFactoryMakeOutput = Awaited<ReturnType<UserFactory["make"]>>;
+
+export type UserFactoryMakeAndSaveOutput = Awaited<
+  ReturnType<UserFactory["makeAndSave"]>
+>;
+
 @Injectable()
 export class UserFactory extends Factory<UserFactoryInput> {
-  constructor(private readonly drizzle: DrizzleService | null = null) {
+  constructor(private readonly drizzle?: DrizzleService) {
     super();
   }
 
@@ -21,7 +27,6 @@ export class UserFactory extends Factory<UserFactoryInput> {
       email: faker.internet.email(),
       password: faker.internet.password(),
       name: faker.person.fullName(),
-      activatedAt: faker.date.recent(),
       ...override,
     } satisfies UserDataDomainCreateInput;
     const entity = UserEntity.create(input);
@@ -32,7 +37,7 @@ export class UserFactory extends Factory<UserFactoryInput> {
   async makeAndSave(override: UserFactoryInput = {}) {
     const user = this.make(override);
 
-    await this.drizzle?.executeToGet(sql`
+    await this.drizzle?.client.execute(sql`
       INSERT INTO users
         (
           id,
@@ -52,7 +57,7 @@ export class UserFactory extends Factory<UserFactoryInput> {
           ${user.entity.activatedAt},
           ${user.entity.updatedAt},
           ${user.entity.createdAt}
-        );
+        )
     `);
 
     return user;

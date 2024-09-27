@@ -1,4 +1,9 @@
-import { User, UserEntity } from "@/domain/entities/user.entity";
+import { Mapper } from "@/core/mapper";
+import {
+  User,
+  UserDataDomainUpdateInput,
+  UserEntity,
+} from "@/domain/entities/user.entity";
 import { UserRepository } from "@/domain/gateways/repositories/user.repository";
 import { Injectable } from "@nestjs/common";
 import { sql } from "drizzle-orm";
@@ -35,6 +40,38 @@ export class DrizzleUserRepository implements UserRepository {
           ${user.createdAt}
         );
     `;
+
+    await session.execute(query);
+  }
+
+  async updateUnique(
+    user: User,
+    data: UserDataDomainUpdateInput,
+    { session }: { session: DrizzleSession } = { session: this.drizzle.client },
+  ): Promise<void> {
+    const updatedUserFields = user.update(data);
+    const updatedUserFieldNames = Object.keys(
+      updatedUserFields,
+    ) as (keyof typeof updatedUserFields)[];
+
+    const query = sql`      
+      UPDATE
+        users
+      SET
+    `;
+
+    for (let i = 0; i < updatedUserFieldNames.length; i++) {
+      const fieldName = updatedUserFieldNames[i];
+      const value = updatedUserFields[fieldName];
+
+      query.append(sql`
+        ${sql.identifier(Mapper.toSnakeCase(fieldName))} = ${value}
+      `);
+
+      if (i < updatedUserFieldNames.length - 1) query.append(sql`,`);
+    }
+
+    query.append(sql` WHERE id = ${user.id.value}`);
 
     await session.execute(query);
   }
