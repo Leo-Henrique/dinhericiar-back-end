@@ -47,8 +47,9 @@ export class DrizzleService implements OnModuleInit {
 
   public async executeToGet<RowResult extends Record<string, unknown>>(
     sql: SQLWrapper,
+    { session }: { session: DrizzleSession } = { session: this.client },
   ) {
-    const { rows } = await this.client.execute(sql);
+    const { rows } = await session.execute(sql);
     const result = [];
 
     for (const row of rows) {
