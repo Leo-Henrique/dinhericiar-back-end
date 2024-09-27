@@ -35,7 +35,11 @@ export abstract class Entity<Data extends EntityData> {
         (fields, distinctFieldName) => {
           const newValue = input[distinctFieldName];
 
-          fields[distinctFieldName] = newValue;
+          if (newValue instanceof ValueObject) {
+            fields[distinctFieldName] = newValue.value;
+          } else {
+            fields[distinctFieldName] = newValue;
+          }
 
           return fields;
         },

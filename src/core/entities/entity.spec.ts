@@ -6,7 +6,10 @@ import { describe, expect, it } from "vitest";
 
 class FakeStringValueObject extends ValueObject<string> {
   schema = null;
-  value = "";
+
+  public constructor(public readonly value: string = "") {
+    super();
+  }
 }
 
 class FakeNumberValueObject extends ValueObject<number> {
@@ -94,6 +97,15 @@ describe("[Core] Domain Entity", () => {
 
     expect(updatedFields).toEqual({});
     expect(sut.field3).toEqual(field3Value);
+  });
+
+  it("should be able to return raw values on updating the entity", () => {
+    const sut = FakeEntity.create(fakeEntityInput);
+
+    const newField1ValueObject = new FakeStringValueObject("");
+    const updatedFields = sut.update({ field1: newField1ValueObject });
+
+    expect(updatedFields).toEqual({ field1: newField1ValueObject.value });
   });
 
   it("should be able to return 'updatedAt' field on updating the entity when has been defined", () => {

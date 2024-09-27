@@ -55,7 +55,9 @@ export type EntityDataUpdateInput<
 
 export type EntityDataUpdateOutput<Data extends EntityData> = Merge<
   {
-    [K in keyof Data]?: Data[K];
+    [K in keyof Data]?: Data[K] extends ValueObject
+      ? Data[K]["value"]
+      : Data[K];
   },
   Required<{
     [K in keyof Data as K extends "updatedAt" ? K : never]: Date;
