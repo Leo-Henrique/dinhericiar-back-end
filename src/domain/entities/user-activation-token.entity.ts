@@ -38,4 +38,8 @@ export class UserActivationTokenEntity extends Entity<UserActivationTokenData> {
   public static get tokenBytes() {
     return 64 as const;
   }
+
+  public get tokenDurationInMilliseconds() {
+    return this.data.expiresAt.getTime() - Date.now();
+  }
 }

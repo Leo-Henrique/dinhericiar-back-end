@@ -8,6 +8,13 @@
       "when": 1727441958929,
       "tag": "0000_volatile_patch",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1727459721115,
+      "tag": "0001_fantastic_captain_marvel",
+      "breakpoints": true
     }
   ]
 }

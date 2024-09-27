@@ -2,8 +2,10 @@ import { DomainError } from "@/core/domain-error";
 import {
   BadRequestError,
   ExternalServiceError,
+  InvalidCredentialsError,
   ResourceAlreadyExistsError,
   UserAccountAlreadyActivatedError,
+  UserAccountNotActivatedError,
   UserActivationTokenExpiredError,
   ValidationError,
 } from "@/domain/errors";
@@ -16,6 +18,7 @@ import {
   Catch,
   ConflictException,
   ExceptionFilter,
+  ForbiddenException,
   HttpException,
 } from "@nestjs/common";
 import { FastifyReply } from "fastify";
@@ -34,6 +37,7 @@ export class DomainExceptionFilter implements ExceptionFilter {
       case BadRequestError:
       case UserActivationTokenExpiredError:
       case UserAccountAlreadyActivatedError:
+      case UserAccountNotActivatedError:
         httpException = new BadRequestException(
           ErrorPresenter.toHttp(400, exception),
         );
@@ -48,6 +52,12 @@ export class DomainExceptionFilter implements ExceptionFilter {
       case ExternalServiceError:
         httpException = new BadGatewayException(
           ErrorPresenter.toHttp(502, exception),
+        );
+        break;
+
+      case InvalidCredentialsError:
+        httpException = new ForbiddenException(
+          ErrorPresenter.toHttp(403, exception),
         );
         break;
 

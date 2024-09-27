@@ -48,7 +48,7 @@ export class UserActivationTokenExpiredError extends DomainError {
 
   constructor() {
     super(
-      "O tempo para ativar sua conta expirou. Faça login para abrir uma nova solicitação.",
+      "O tempo para confirmar seu e-mail expirou. Faça login para abrir uma nova solicitação.",
     );
   }
 }
@@ -59,7 +59,29 @@ export class UserAccountAlreadyActivatedError extends DomainError {
 
   constructor() {
     super(
-      "A sua conta já está ativada. Faça login para utilizar o aplicativo.",
+      "O e-mail da sua conta já foi confirmado. Faça login para utilizar o aplicativo.",
+    );
+  }
+}
+
+export class UserAccountNotActivatedError extends DomainError {
+  public readonly error = "UserAccountNotActivatedError" as const;
+  public readonly debug = null;
+
+  constructor() {
+    super(
+      "O e-mail da sua conta ainda não foi confirmado, lhe enviamos um e-mail com instruções para que você possa confirma-lo.",
+    );
+  }
+}
+
+export class InvalidCredentialsError extends DomainError {
+  public readonly error = "InvalidCredentialsError" as const;
+  public readonly debug = null;
+
+  constructor() {
+    super(
+      "As credenciais são inválidas. Verifique se seu e-mail e senha estão corretos.",
     );
   }
 }
