@@ -1,28 +1,26 @@
 import { drizzleClient } from "@/infra/database/drizzle/drizzle.service";
+import { randomUUID } from "crypto";
 import { sql } from "drizzle-orm";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { afterAll, beforeAll } from "vitest";
-import {
-  DRIZZLE_E2E_MIGRATIONS_DIR_FROM_ROOT,
-  POSTGRES_E2E_SCHEMA_NAME,
-} from "./drizzle/setup";
+import { DRIZZLE_E2E_MIGRATIONS_DIR_FROM_ROOT } from "./drizzle/setup";
+
+const postgresSchemaNameFromCurrentTestSuite = "e2e_" + randomUUID();
 
 beforeAll(async () => {
+  await drizzleClient.execute(sql`
+    CREATE SCHEMA ${sql.identifier(postgresSchemaNameFromCurrentTestSuite)};
+    SET search_path TO ${sql.identifier(postgresSchemaNameFromCurrentTestSuite)};
+  `);
+
   await migrate(drizzleClient, {
     migrationsFolder: DRIZZLE_E2E_MIGRATIONS_DIR_FROM_ROOT,
-    migrationsSchema: POSTGRES_E2E_SCHEMA_NAME,
+    migrationsSchema: postgresSchemaNameFromCurrentTestSuite,
   });
-
-  await drizzleClient.execute(sql`
-    SET 
-      search_path 
-    TO 
-      ${sql.identifier(POSTGRES_E2E_SCHEMA_NAME)};
-  `);
 });
 
 afterAll(async () => {
   await drizzleClient.execute(sql`
-    DROP SCHEMA IF EXISTS ${sql.identifier(POSTGRES_E2E_SCHEMA_NAME)} CASCADE;
+    DROP SCHEMA ${sql.identifier(postgresSchemaNameFromCurrentTestSuite)} CASCADE;
   `);
 });

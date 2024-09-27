@@ -1,12 +1,12 @@
 {
-  "id": "f86aa0b7-b82b-49e4-af51-c5ea4c2c03ee",
+  "id": "9bffef10-4df4-4199-b8be-867f6354088a",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "e2e.user_activation_tokens": {
+    "public.user_activation_tokens": {
       "name": "user_activation_tokens",
-      "schema": "e2e",
+      "schema": "",
       "columns": {
         "user_id": {
           "name": "user_id",
@@ -33,7 +33,6 @@
           "name": "user_activation_tokens_user_id_users_id_fk",
           "tableFrom": "user_activation_tokens",
           "tableTo": "users",
-          "schemaTo": "e2e",
           "columnsFrom": ["user_id"],
           "columnsTo": ["id"],
           "onDelete": "cascade",
@@ -43,9 +42,9 @@
       "compositePrimaryKeys": {},
       "uniqueConstraints": {}
     },
-    "e2e.users": {
+    "public.users": {
       "name": "users",
-      "schema": "e2e",
+      "schema": "",
       "columns": {
         "id": {
           "name": "id",

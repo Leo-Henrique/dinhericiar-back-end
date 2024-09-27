@@ -23,6 +23,7 @@
     "migrate": "drizzle-kit --config ./src/infra/database/drizzle/setup.ts",
     "migrate:test": "drizzle-kit --config ./test/e2e/drizzle/setup.ts",
     "migrate:test:generate": "pnpm migrate:test generate",
+    "postmigrate:test:generate": "node -r @swc-node/register ./test/e2e/drizzle/remove-schema-reference-from-dll-files.ts",
     "migrate:generate": "pnpm migrate generate",
     "migrate:dev": "pnpm migrate push"
   },
@@ -50,6 +51,7 @@
     "@nestjs/cli": "10.4.2",
     "@nestjs/schematics": "10.1.2",
     "@nestjs/testing": "10.3.10",
+    "@swc-node/register": "1.10.9",
     "@swc/cli": "0.4.0",
     "@swc/core": "1.7.0",
     "@types/bcryptjs": "2.4.6",

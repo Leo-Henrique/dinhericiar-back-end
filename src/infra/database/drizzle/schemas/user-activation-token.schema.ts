@@ -2,7 +2,6 @@ import { UserActivationTokenData } from "@/domain/entities/user-activation-token
 import { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import * as ddl from "drizzle-orm/pg-core";
 import { drizzleUserTable } from "./user.schema";
-import { tableWithSchema } from "./utils";
 
 export type DrizzleUserActivationTokenData = InferSelectModel<
   typeof drizzleUserActivationTokenTable
@@ -12,7 +11,7 @@ export type DrizzleUserActivationTokenDataCreate = InferInsertModel<
   typeof drizzleUserActivationTokenTable
 >;
 
-export const drizzleUserActivationTokenTable = tableWithSchema()(
+export const drizzleUserActivationTokenTable = ddl.pgTable(
   "user_activation_tokens",
   {
     userId: ddl
