@@ -1,14 +1,11 @@
 import { Factory } from "@/core/factory";
-import {
-  UserDataDomainCreateInput,
-  UserEntity,
-} from "@/domain/entities/user.entity";
+import { UserDataCreateInput, UserEntity } from "@/domain/entities/user.entity";
 import { DrizzleService } from "@/infra/database/drizzle/drizzle.service";
 import { faker } from "@faker-js/faker";
 import { Injectable } from "@nestjs/common";
 import { sql } from "drizzle-orm";
 
-type UserFactoryInput = Partial<UserDataDomainCreateInput>;
+type UserFactoryInput = Partial<UserDataCreateInput>;
 
 export type UserFactoryMakeOutput = Awaited<ReturnType<UserFactory["make"]>>;
 
@@ -28,7 +25,7 @@ export class UserFactory extends Factory<UserFactoryInput> {
       password: faker.internet.password(),
       name: faker.person.fullName(),
       ...override,
-    } satisfies UserDataDomainCreateInput;
+    } satisfies UserDataCreateInput;
     const entity = UserEntity.create(input);
 
     return { input, entity };

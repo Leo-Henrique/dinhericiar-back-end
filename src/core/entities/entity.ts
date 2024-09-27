@@ -1,4 +1,3 @@
-import { ZodObject, ZodRawShape } from "zod";
 import {
   EntityData,
   EntityDataRaw,
@@ -79,9 +78,4 @@ export abstract class Entity<Data extends EntityData> {
 
     return Object.setPrototypeOf(rawData, null) as EntityDataRaw<Data>;
   }
-}
-
-export abstract class EntitySchema {
-  abstract create: ZodObject<ZodRawShape>;
-  abstract update: ZodObject<ZodRawShape>;
 }

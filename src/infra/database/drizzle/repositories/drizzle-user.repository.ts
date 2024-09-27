@@ -1,7 +1,7 @@
 import { Mapper } from "@/core/mapper";
 import {
   User,
-  UserDataDomainUpdateInput,
+  UserDataUpdateInput,
   UserEntity,
 } from "@/domain/entities/user.entity";
 import { UserRepository } from "@/domain/gateways/repositories/user.repository";
@@ -46,7 +46,7 @@ export class DrizzleUserRepository implements UserRepository {
 
   async updateUnique(
     user: User,
-    data: UserDataDomainUpdateInput,
+    data: UserDataUpdateInput,
     { session }: { session: DrizzleSession } = { session: this.drizzle.client },
   ): Promise<void> {
     const updatedUserFields = user.update(data);

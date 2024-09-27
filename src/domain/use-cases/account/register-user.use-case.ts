@@ -1,12 +1,9 @@
 import { InferLeftReason } from "@/core/@types/either";
 import { Either, left, right } from "@/core/either";
 import { UseCase } from "@/core/use-case";
+import { UserSchemaToCreate } from "@/domain/entities/schemas/user.schema";
 import { UserActivationTokenEntity } from "@/domain/entities/user-activation-token.entity";
-import {
-  User,
-  UserDataCreateInput,
-  UserEntity,
-} from "@/domain/entities/user.entity";
+import { User, UserEntity } from "@/domain/entities/user.entity";
 import { ResourceAlreadyExistsError } from "@/domain/errors";
 import { Encryption } from "@/domain/gateways/cryptology/encryption";
 import { PasswordHasher } from "@/domain/gateways/cryptology/password-hasher";
@@ -19,7 +16,7 @@ import { UserRepository } from "@/domain/gateways/repositories/user.repository";
 import { UnitOfWork } from "@/domain/gateways/unit-of-work";
 import { Injectable } from "@nestjs/common";
 
-type RegisterUserUseCaseInput = UserDataCreateInput;
+type RegisterUserUseCaseInput = UserSchemaToCreate;
 
 type RegisterUserUseCaseOutput = Either<
   ResourceAlreadyExistsError | InferLeftReason<SendEmailOutput>,

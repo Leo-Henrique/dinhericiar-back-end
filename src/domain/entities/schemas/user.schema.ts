@@ -1,11 +1,14 @@
-import { EntitySchema } from "@/core/entities/entity";
 import { z } from "zod";
 import { Email } from "../value-objects/email";
 import { Name } from "../value-objects/name";
 import { Password } from "../value-objects/password";
 
-export class UserEntitySchema extends EntitySchema {
-  get create() {
+export type UserSchemaToCreate = z.infer<typeof UserEntitySchema.toCreate>;
+
+export type UserSchemaToUpdate = z.infer<typeof UserEntitySchema.toUpdate>;
+
+export class UserEntitySchema {
+  static get toCreate() {
     return z.object({
       email: Email.schema,
       password: Password.schema,
@@ -13,7 +16,7 @@ export class UserEntitySchema extends EntitySchema {
     });
   }
 
-  get update() {
-    return this.create.partial();
+  static get toUpdate() {
+    return this.toCreate.partial();
   }
 }

@@ -1,6 +1,6 @@
 import { Either, left, right } from "@/core/either";
 import { UseCase } from "@/core/use-case";
-import { Token } from "@/domain/entities/value-objects/token";
+import { UserActivationTokenSchemaToActivate } from "@/domain/entities/schemas/user-activation-token.schema";
 import {
   BadRequestError,
   UserAccountAlreadyActivatedError,
@@ -9,9 +9,7 @@ import {
 import { UserActivationTokenRepository } from "@/domain/gateways/repositories/user-activation-token.repository";
 import { Injectable } from "@nestjs/common";
 
-type ActivateUserAccountUseCaseInput = {
-  token: Token["value"];
-};
+type ActivateUserAccountUseCaseInput = UserActivationTokenSchemaToActivate;
 
 type ActivateUserAccountUseCaseOutput = Either<
   | BadRequestError

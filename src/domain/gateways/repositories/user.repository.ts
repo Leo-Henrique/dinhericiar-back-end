@@ -1,4 +1,4 @@
-import { User, UserDataDomainUpdateInput } from "@/domain/entities/user.entity";
+import { User, UserDataUpdateInput } from "@/domain/entities/user.entity";
 import { UnitOfWorkSessionOptions } from "../unit-of-work";
 
 export abstract class UserRepository {
@@ -8,7 +8,7 @@ export abstract class UserRepository {
   ): Promise<void>;
   abstract updateUnique(
     user: User,
-    data: UserDataDomainUpdateInput,
+    data: UserDataUpdateInput,
     options?: UnitOfWorkSessionOptions,
   ): Promise<void>;
   abstract findUniqueByEmail(email: string): Promise<User | null>;

@@ -6,8 +6,8 @@ import { ApiTags } from "@nestjs/swagger";
 import { z } from "zod";
 import { ZodSchemaPipe } from "../../middlewares/zod-schema-pipe";
 
-const registerUserControllerBodySchema = UserEntity.schema.create.extend({
-  name: extendApi(UserEntity.schema.create.shape.name, {
+const registerUserControllerBodySchema = UserEntity.schema.toCreate.extend({
+  name: extendApi(UserEntity.schema.toCreate.shape.name, {
     example: "John Doe",
   }),
 });

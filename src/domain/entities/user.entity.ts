@@ -4,8 +4,11 @@ import {
   EntityInstance,
 } from "@/core/@types/entity";
 import { Entity } from "@/core/entities/entity";
-import { z } from "zod";
-import { UserEntitySchema } from "./schemas/user.schema";
+import {
+  UserEntitySchema,
+  UserSchemaToCreate,
+  UserSchemaToUpdate,
+} from "./schemas/user.schema";
 import { Email } from "./value-objects/email";
 import { Name } from "./value-objects/name";
 import { Password } from "./value-objects/password";
@@ -23,24 +26,20 @@ export type UserData = {
   createdAt: Date;
 };
 
-export type UserDataCreateInput = z.infer<typeof UserEntity.schema.create>;
-
-export type UserDataDomainCreateInput = EntityDataCreateInput<
+export type UserDataCreateInput = EntityDataCreateInput<
   UserData,
-  UserDataCreateInput
+  UserSchemaToCreate
 >;
 
-export type UserDataUpdateInput = z.infer<typeof UserEntity.schema.update>;
-
-export type UserDataDomainUpdateInput = EntityDataUpdateInput<
+export type UserDataUpdateInput = EntityDataUpdateInput<
   UserData,
-  UserDataUpdateInput
+  UserSchemaToUpdate
 >;
 
 export class UserEntity extends Entity<UserData> {
-  static schema = new UserEntitySchema();
+  static readonly schema = UserEntitySchema;
 
-  static create(input: UserDataDomainCreateInput) {
+  static create(input: UserDataCreateInput) {
     return new this().createEntity({
       updatedAt: null,
       createdAt: new Date(),
@@ -53,7 +52,7 @@ export class UserEntity extends Entity<UserData> {
     });
   }
 
-  update<Input extends UserDataDomainUpdateInput>(input: Input) {
+  update<Input extends UserDataUpdateInput>(input: Input) {
     return this.updateEntity({
       ...input,
       email: input.email ? new Email(input.email) : undefined,

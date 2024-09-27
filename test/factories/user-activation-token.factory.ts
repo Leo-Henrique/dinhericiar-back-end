@@ -1,6 +1,6 @@
 import { Factory } from "@/core/factory";
 import {
-  UserActivationTokenDataDomainCreateInput,
+  UserActivationTokenDataCreateInput,
   UserActivationTokenEntity,
 } from "@/domain/entities/user-activation-token.entity";
 import { DrizzleService } from "@/infra/database/drizzle/drizzle.service";
@@ -9,7 +9,7 @@ import { Injectable } from "@nestjs/common";
 import { sql } from "drizzle-orm";
 
 type UserActivationTokenFactoryInput =
-  Partial<UserActivationTokenDataDomainCreateInput>;
+  Partial<UserActivationTokenDataCreateInput>;
 
 export type UserActivationTokenFactoryMakeOutput = Awaited<
   ReturnType<UserActivationTokenFactory["make"]>
@@ -33,7 +33,7 @@ export class UserActivationTokenFactory extends Factory<UserActivationTokenFacto
         prefix: "",
       }),
       ...override,
-    } satisfies UserActivationTokenDataDomainCreateInput;
+    } satisfies UserActivationTokenDataCreateInput;
     const entity = UserActivationTokenEntity.create(input);
 
     return { input, entity };
