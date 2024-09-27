@@ -48,13 +48,25 @@ export class DrizzleService implements OnModuleInit {
   public async executeToGet<RowResult extends Record<string, unknown>>(
     sql: SQLWrapper,
   ) {
-    const { rows } = await this.client.execute<RowResult>(sql);
+    const { rows } = await this.client.execute(sql);
     const result = [];
 
     for (const row of rows) {
+      const columnNames = Object.keys(row);
+
+      for (const columnName of columnNames) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const value = row[columnName] as any;
+        const isDateValue = !isNaN(new Date(value).getTime());
+
+        if (isDateValue) {
+          row[columnName] = new Date(value);
+        }
+      }
+
       result.push(Mapper.toCamelCaseProperties(row));
     }
 
-    return result;
+    return result as RowResult[];
   }
 }
