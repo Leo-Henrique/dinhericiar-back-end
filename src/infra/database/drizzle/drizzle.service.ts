@@ -57,7 +57,8 @@ export class DrizzleService implements OnModuleInit {
       for (const columnName of columnNames) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const value = row[columnName] as any;
-        const isDateValue = !isNaN(new Date(value).getTime());
+        const isDateValue =
+          typeof value === "string" && !isNaN(new Date(value).getTime());
 
         if (isDateValue) {
           row[columnName] = new Date(value);
