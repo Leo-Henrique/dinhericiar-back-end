@@ -4,9 +4,11 @@ import {
   ExternalServiceError,
   InvalidCredentialsError,
   ResourceAlreadyExistsError,
+  ResourceNotFoundError,
   UserAccountAlreadyActivatedError,
   UserAccountNotActivatedError,
   UserActivationTokenExpiredError,
+  UserPasswordResetTokenExpiredError,
   ValidationError,
 } from "@/domain/errors";
 import { env } from "@/infra/env";
@@ -38,6 +40,8 @@ export class DomainExceptionFilter implements ExceptionFilter {
       case UserActivationTokenExpiredError:
       case UserAccountAlreadyActivatedError:
       case UserAccountNotActivatedError:
+      case UserPasswordResetTokenExpiredError:
+      case ResourceNotFoundError:
         httpException = new BadRequestException(
           ErrorPresenter.toHttp(400, exception),
         );

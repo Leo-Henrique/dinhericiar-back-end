@@ -20,6 +20,15 @@ export class ResourceAlreadyExistsError extends DomainError {
   }
 }
 
+export class ResourceNotFoundError extends DomainError {
+  public readonly error = "ResourceNotFoundError" as const;
+  public readonly debug = null;
+
+  constructor(message: string) {
+    super(message);
+  }
+}
+
 export class ExternalServiceError extends DomainError {
   public readonly error = "ExternalServiceError" as const;
 
@@ -71,6 +80,17 @@ export class UserAccountNotActivatedError extends DomainError {
   constructor() {
     super(
       "O e-mail da sua conta ainda não foi confirmado, lhe enviamos um e-mail com instruções para que você possa confirma-lo.",
+    );
+  }
+}
+
+export class UserPasswordResetTokenExpiredError extends DomainError {
+  public readonly error = "UserPasswordResetTokenExpiredError" as const;
+  public readonly debug = null;
+
+  constructor() {
+    super(
+      "O tempo para redefinir sua senha expirou. Abra uma nova solicitação para poder alterar sua senha.",
     );
   }
 }

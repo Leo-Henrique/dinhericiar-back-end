@@ -15,6 +15,13 @@
       "when": 1727459721115,
       "tag": "0001_fantastic_captain_marvel",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1727628053108,
+      "tag": "0002_massive_shotgun",
+      "breakpoints": true
     }
   ]
 }
