@@ -18,7 +18,7 @@ import {
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { ActivateUserAccountControllerBody } from "./activate-user-account.controller";
 
-describe("[Controller] PATCH /users/activate", () => {
+describe("[Controller] PATCH /account/activate", () => {
   let app: NestFastifyApplication;
   let drizzle: DrizzleService;
   let userFactory: UserFactory;
@@ -55,7 +55,7 @@ describe("[Controller] PATCH /users/activate", () => {
     });
 
     const response = await request(app.getHttpServer())
-      .patch("/users/activate")
+      .patch("/account/activate")
       .send({
         token: userActivationToken.entity.token.value,
       } satisfies ActivateUserAccountControllerBody);
@@ -107,7 +107,7 @@ describe("[Controller] PATCH /users/activate", () => {
       });
 
     const response = await request(app.getHttpServer())
-      .patch("/users/activate")
+      .patch("/account/activate")
       .send({
         token: expiredUserActivationToken.entity.token.value,
       } satisfies ActivateUserAccountControllerBody);
@@ -125,7 +125,7 @@ describe("[Controller] PATCH /users/activate", () => {
       });
 
     const response = await request(app.getHttpServer())
-      .patch("/users/activate")
+      .patch("/account/activate")
       .send({
         token: expiredUserActivationToken.entity.token.value,
       } satisfies ActivateUserAccountControllerBody);
@@ -140,7 +140,7 @@ describe("[Controller] PATCH /users/activate", () => {
     const nonExistingUserActivationToken = userActivationTokenFactory.make();
 
     const response = await request(app.getHttpServer())
-      .patch("/users/activate")
+      .patch("/account/activate")
       .send({
         token: nonExistingUserActivationToken.entity.token.value,
       } satisfies ActivateUserAccountControllerBody);

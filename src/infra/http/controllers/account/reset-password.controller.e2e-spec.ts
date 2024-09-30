@@ -20,7 +20,7 @@ import {
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { ResetPasswordControllerBody } from "./reset-password.controller";
 
-describe("[Controller] PATCH /users/reset-password", () => {
+describe("[Controller] PATCH /account/reset-password", () => {
   let app: NestFastifyApplication;
   let drizzle: DrizzleService;
   let userFactory: UserFactory;
@@ -61,7 +61,7 @@ describe("[Controller] PATCH /users/reset-password", () => {
 
     const newPassword = faker.internet.password();
     const response = await request(app.getHttpServer())
-      .patch("/users/reset-password")
+      .patch("/account/reset-password")
       .send({
         token: userPasswordResetToken.entity.token.value,
         password: newPassword,
@@ -116,7 +116,7 @@ describe("[Controller] PATCH /users/reset-password", () => {
       });
 
     const response = await request(app.getHttpServer())
-      .patch("/users/reset-password")
+      .patch("/account/reset-password")
       .send({
         token: expiredUserPasswordResetToken.entity.token.value,
         password: faker.internet.password(),
@@ -133,7 +133,7 @@ describe("[Controller] PATCH /users/reset-password", () => {
       userPasswordResetTokenFactory.make();
 
     const response = await request(app.getHttpServer())
-      .patch("/users/reset-password")
+      .patch("/account/reset-password")
       .send({
         token: nonExistingUserPasswordResetToken.entity.token.value,
         password: faker.internet.password(),

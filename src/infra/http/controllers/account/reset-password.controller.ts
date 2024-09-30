@@ -16,8 +16,8 @@ export type ResetPasswordControllerBody = z.infer<
 export class ResetPasswordController {
   constructor(private readonly resetPasswordUseCase: ResetPasswordUseCase) {}
 
-  @ApiTags("Usuários")
-  @Patch("/users/reset-password")
+  @ApiTags("Conta")
+  @Patch("/account/reset-password")
   @HttpCode(204)
   @ZodSchemaPipe({
     body: resetPasswordControllerBodySchema,

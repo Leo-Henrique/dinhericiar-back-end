@@ -18,8 +18,8 @@ export class ActivateUserAccountController {
     private readonly activateUserAccountUseCase: ActivateUserAccountUseCase,
   ) {}
 
-  @ApiTags("Usuários")
-  @Patch("/users/activate")
+  @ApiTags("Conta")
+  @Patch("/account/activate")
   @HttpCode(204)
   @ZodSchemaPipe({
     body: activateUserAccountControllerBodySchema,

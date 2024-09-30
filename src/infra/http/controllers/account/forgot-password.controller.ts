@@ -16,8 +16,8 @@ export type ForgotPasswordControllerBody = z.infer<
 export class ForgotPasswordController {
   constructor(private readonly forgotPasswordUseCase: ForgotPasswordUseCase) {}
 
-  @ApiTags("Usuários")
-  @Post("/users/forgot-password")
+  @ApiTags("Conta")
+  @Post("/account/forgot-password")
   @HttpCode(204)
   @ZodSchemaPipe({
     body: forgotPasswordControllerBodySchema,

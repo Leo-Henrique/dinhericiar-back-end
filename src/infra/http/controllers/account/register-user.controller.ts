@@ -20,8 +20,8 @@ export type RegisterUserControllerBody = z.infer<
 export class RegisterUserController {
   constructor(private readonly registerUserUseCase: RegisterUserUseCase) {}
 
-  @ApiTags("Usuários")
-  @Post("/users")
+  @ApiTags("Conta")
+  @Post("/account")
   @HttpCode(201)
   @ZodSchemaPipe({
     body: registerUserControllerBodySchema,

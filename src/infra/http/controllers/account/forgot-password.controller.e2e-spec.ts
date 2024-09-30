@@ -18,7 +18,7 @@ import {
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { ForgotPasswordControllerBody } from "./forgot-password.controller";
 
-describe("[Controller] POST /users/forgot-password", () => {
+describe("[Controller] POST /account/forgot-password", () => {
   let app: NestFastifyApplication;
   let drizzle: DrizzleService;
   let userFactory: UserFactory;
@@ -49,7 +49,7 @@ describe("[Controller] POST /users/forgot-password", () => {
 
   it("should be able to send email to recovery password", async () => {
     const response = await request(app.getHttpServer())
-      .post("/users/forgot-password")
+      .post("/account/forgot-password")
       .send({
         email: user.entity.email.value,
       } satisfies ForgotPasswordControllerBody);
@@ -95,7 +95,7 @@ describe("[Controller] POST /users/forgot-password", () => {
     const nonExistingUser = userFactory.make();
 
     const response = await request(app.getHttpServer())
-      .post("/users/forgot-password")
+      .post("/account/forgot-password")
       .send({
         email: nonExistingUser.entity.email.value,
       } satisfies ForgotPasswordControllerBody);

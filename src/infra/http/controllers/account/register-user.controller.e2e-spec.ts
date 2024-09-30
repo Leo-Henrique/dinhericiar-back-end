@@ -18,7 +18,7 @@ import { UserFactory } from "test/factories/user.factory";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { RegisterUserControllerBody } from "./register-user.controller";
 
-describe("[Controller] POST /users", () => {
+describe("[Controller] POST /account", () => {
   let app: NestFastifyApplication;
   let drizzle: DrizzleService;
   let emailDispatcher: EmailDispatcher;
@@ -62,7 +62,7 @@ describe("[Controller] POST /users", () => {
     );
 
     const response = await request(app.getHttpServer())
-      .post("/users")
+      .post("/account")
       .send(input);
 
     expect(response.statusCode).toEqual(201);
@@ -126,7 +126,7 @@ describe("[Controller] POST /users", () => {
 
   it("should not be able to register a user with an existing email", async () => {
     const response = await request(app.getHttpServer())
-      .post("/users")
+      .post("/account")
       .send(input);
 
     expect(response.statusCode).toStrictEqual(409);
@@ -136,7 +136,7 @@ describe("[Controller] POST /users", () => {
   describe("Input data validations", () => {
     it("should not be able to register a user with invalid e-mail", async () => {
       const response = await request(app.getHttpServer())
-        .post("/users")
+        .post("/account")
         .send({
           email: faker.lorem.sentence(),
           password: faker.internet.password(),
@@ -149,7 +149,7 @@ describe("[Controller] POST /users", () => {
 
     it("should not be able to register a user with a password less than 6 characters", async () => {
       const response = await request(app.getHttpServer())
-        .post("/users")
+        .post("/account")
         .send({
           email: faker.internet.email(),
           password: faker.internet.password({ length: 5 }),
