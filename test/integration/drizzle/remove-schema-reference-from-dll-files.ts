@@ -1,7 +1,7 @@
 import { readFile, readdir, writeFile } from "fs/promises";
 import { resolve } from "path";
 
-// remove explicit reference to public schema from drizzle migration ddl files. This is necessary to run migrations on different schemas in the integration test setup.
+// remove explicit reference to public schema from drizzle migration ddl files. This is necessary to run migrations on different schemas in the integration testing setup.
 
 (async () => {
   const testMigrationsDirname = resolve(__dirname, "./migrations");

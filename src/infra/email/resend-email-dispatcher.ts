@@ -35,7 +35,7 @@ export class ResendEmailDispatcher implements EmailDispatcher {
     recipient: User,
     accountActivationToken: UserActivationToken,
   ): Promise<SendEmailOutput> {
-    // TODO: implement end-to-end email sending testing
+    // TODO: implement integration testing for sending e-mail
     if (env.NODE_ENV === "test") return right(null);
 
     const clientSideActivationPageUrl = new URL(
@@ -86,7 +86,7 @@ export class ResendEmailDispatcher implements EmailDispatcher {
     recipient: User,
     userPasswordResetToken: UserPasswordResetToken,
   ): Promise<SendEmailOutput> {
-    // TODO: implement end-to-end email sending testing
+    // TODO: implement integration testing for sending e-mail
     if (env.NODE_ENV === "test") return right(null);
 
     const clientSideResetPasswordPageUrl = new URL(

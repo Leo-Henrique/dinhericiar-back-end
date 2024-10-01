@@ -3,9 +3,10 @@ import { randomUUID } from "crypto";
 import { sql } from "drizzle-orm";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { afterAll, beforeAll } from "vitest";
-import { DRIZZLE_E2E_MIGRATIONS_DIR_FROM_ROOT } from "./drizzle/setup";
+import { DRIZZLE_MIGRATIONS_DIR_IN_INTEGRATION_TESTING_ENVIRONMENT } from "./drizzle/setup";
 
-const postgresSchemaNameFromCurrentTestSuite = "e2e_" + randomUUID();
+const postgresSchemaNameFromCurrentTestSuite =
+  "integration_testing_" + randomUUID();
 
 beforeAll(async () => {
   await drizzleClient.execute(sql`
@@ -14,7 +15,7 @@ beforeAll(async () => {
   `);
 
   await migrate(drizzleClient, {
-    migrationsFolder: DRIZZLE_E2E_MIGRATIONS_DIR_FROM_ROOT,
+    migrationsFolder: DRIZZLE_MIGRATIONS_DIR_IN_INTEGRATION_TESTING_ENVIRONMENT,
     migrationsSchema: postgresSchemaNameFromCurrentTestSuite,
   });
 });
