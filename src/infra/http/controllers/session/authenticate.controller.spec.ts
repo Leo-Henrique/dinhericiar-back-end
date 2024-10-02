@@ -20,10 +20,8 @@ import {
   UserFactoryMakeAndSaveOutput,
 } from "test/factories/user.factory";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
-import {
-  AuthenticateControllerBody,
-  SESSION_COOKIE_NAME,
-} from "./authenticate.controller";
+import { SESSION_COOKIE_NAME } from "../../auth/session-cookie-name";
+import { AuthenticateControllerBody } from "./authenticate.controller";
 
 describe("[Controller] POST /sessions", () => {
   let app: NestFastifyApplication;
@@ -91,9 +89,8 @@ describe("[Controller] POST /sessions", () => {
       `${SESSION_COOKIE_NAME}=${sessionOnDatabase.token}; Path=/; HttpOnly; SameSite=Strict`,
     );
 
-    const session = SessionEntity.create(sessionOnDatabase);
     const sessionApproximateExpiration = new Date(
-      Date.now() + session.tokenDurationInMilliseconds,
+      Date.now() + SessionEntity.tokenDefaultDurationInMilliseconds,
     );
 
     sessionOnDatabase.expiresAt.setSeconds(0, 0);

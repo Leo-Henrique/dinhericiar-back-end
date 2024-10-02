@@ -60,4 +60,12 @@ export class UserEntity extends Entity<UserData> {
       name: input.name ? new Name(input.name) : undefined,
     });
   }
+
+  getBasePresenter() {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, activatedAt, updatedAt, ...userPresenter } =
+      this.getRawData();
+
+    return userPresenter;
+  }
 }

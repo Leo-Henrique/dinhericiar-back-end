@@ -5,6 +5,8 @@ import {
   InvalidCredentialsError,
   ResourceAlreadyExistsError,
   ResourceNotFoundError,
+  SessionExpiredError,
+  SessionIsBadError,
   UserAccountAlreadyActivatedError,
   UserAccountNotActivatedError,
   UserActivationTokenExpiredError,
@@ -22,6 +24,7 @@ import {
   ExceptionFilter,
   ForbiddenException,
   HttpException,
+  UnauthorizedException,
 } from "@nestjs/common";
 import { FastifyReply } from "fastify";
 import { InternalServerError } from "../internal-server.error";
@@ -62,6 +65,13 @@ export class DomainExceptionFilter implements ExceptionFilter {
       case InvalidCredentialsError:
         httpException = new ForbiddenException(
           ErrorPresenter.toHttp(403, exception),
+        );
+        break;
+
+      case SessionIsBadError:
+      case SessionExpiredError:
+        httpException = new UnauthorizedException(
+          ErrorPresenter.toHttp(401, exception),
         );
         break;
 

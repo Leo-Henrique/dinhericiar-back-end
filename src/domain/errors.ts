@@ -105,3 +105,20 @@ export class InvalidCredentialsError extends DomainError {
     );
   }
 }
+
+export class SessionIsBadError extends DomainError {
+  public readonly error = "SessionIsBadError" as const;
+
+  constructor(public readonly debug: unknown = null) {
+    super("Sessão inválida.");
+  }
+}
+
+export class SessionExpiredError extends DomainError {
+  public readonly error = "SessionExpiredError" as const;
+  public readonly debug: unknown = null;
+
+  constructor() {
+    super("A sessão expirou. Faça login novamente.");
+  }
+}

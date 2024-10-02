@@ -33,12 +33,12 @@ export class SessionEntity extends Entity<SessionData> {
   static readonly schema = SessionEntitySchema;
 
   static create(input: SessionDataCreateInput) {
-    const threeDaysInMilliseconds = 1000 * 60 * 60 * 24 * 3;
-
     return new this().createEntity({
       updatedAt: null,
       createdAt: new Date(),
-      expiresAt: new Date(Date.now() + threeDaysInMilliseconds),
+      expiresAt: new Date(
+        Date.now() + SessionEntity.tokenDefaultDurationInMilliseconds,
+      ),
       ...input,
       userId: new UniqueEntityId(input.userId),
       token: new Token(input.token),
@@ -53,7 +53,7 @@ export class SessionEntity extends Entity<SessionData> {
     return 128 as const;
   }
 
-  public get tokenDurationInMilliseconds() {
-    return this.data.expiresAt.getTime() - Date.now();
+  public static get tokenDefaultDurationInMilliseconds() {
+    return 1000 * 60 * 60 * 24 * 3; // 3 days
   }
 }
