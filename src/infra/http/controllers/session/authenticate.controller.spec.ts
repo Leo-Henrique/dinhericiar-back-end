@@ -138,11 +138,8 @@ describe("[Controller] POST /sessions", () => {
 
     expect(userActivationTokenOnDatabase).toBeTruthy();
 
-    const userActivationToken = UserActivationTokenEntity.create(
-      userActivationTokenOnDatabase,
-    );
     const activationTokenApproximateExpiration = new Date(
-      Date.now() + userActivationToken.tokenDurationInMilliseconds,
+      Date.now() + UserActivationTokenEntity.tokenDefaultDurationInMilliseconds,
     );
 
     userActivationTokenOnDatabase.expiresAt.setSeconds(0, 0);

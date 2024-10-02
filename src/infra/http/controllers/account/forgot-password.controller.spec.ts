@@ -76,11 +76,9 @@ describe("[Controller] POST /account/forgot-password", () => {
       UserPasswordResetTokenEntity.tokenBytes * 2,
     );
 
-    const userPasswordResetToken = UserPasswordResetTokenEntity.create(
-      userPasswordResetTokenOnDatabase,
-    );
     const tokenApproximateExpiration = new Date(
-      Date.now() + userPasswordResetToken.tokenDurationInMilliseconds,
+      Date.now() +
+        UserPasswordResetTokenEntity.tokenDefaultDurationInMilliseconds,
     );
 
     userPasswordResetTokenOnDatabase.expiresAt.setSeconds(0, 0);

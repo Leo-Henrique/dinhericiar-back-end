@@ -25,10 +25,10 @@ export class UserActivationTokenEntity extends Entity<UserActivationTokenData> {
   static readonly schema = UserActivationTokenEntitySchema;
 
   static create(input: UserActivationTokenDataCreateInput) {
-    const fifteenMinutesInMilliseconds = 1000 * 60 * 15;
+    const { tokenDefaultDurationInMilliseconds } = UserActivationTokenEntity;
 
     return new this().createEntity({
-      expiresAt: new Date(Date.now() + fifteenMinutesInMilliseconds),
+      expiresAt: new Date(Date.now() + tokenDefaultDurationInMilliseconds),
       ...input,
       userId: new UniqueEntityId(input.userId),
       token: new Token(input.token),
@@ -39,7 +39,7 @@ export class UserActivationTokenEntity extends Entity<UserActivationTokenData> {
     return 64 as const;
   }
 
-  public get tokenDurationInMilliseconds() {
-    return this.data.expiresAt.getTime() - Date.now();
+  public static get tokenDefaultDurationInMilliseconds() {
+    return 1000 * 60 * 15; // 15 minutes
   }
 }
