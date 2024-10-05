@@ -17,7 +17,7 @@ export const drizzleSessionTable = ddl.pgTable("sessions", {
       onUpdate: "cascade",
       onDelete: "cascade",
     }),
-  token: ddl.text("token").notNull(),
+  token: ddl.text("token").unique().notNull(),
   expiresAt: ddl.timestamp("expires_at").notNull(),
   updatedAt: ddl.timestamp("updated_at"),
   createdAt: ddl.timestamp("created_at").notNull(),
