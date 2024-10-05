@@ -5,9 +5,13 @@ import { PrimitiveValue } from "./primitive-value";
 
 export type EntityData = Record<string, PrimitiveValue | ValueObject>;
 
-export type EntityDataCreate = Record<string, PrimitiveValue>;
+export type EntityDataCreate<Data extends EntityData = Record<string, never>> =
+  | Record<keyof Data, PrimitiveValue>
+  | Record<string, PrimitiveValue>;
 
-export type EntityDataUpdate = Record<string, PrimitiveValue>;
+export type EntityDataUpdate<Data extends EntityData = Record<string, never>> =
+  | Record<keyof Data, PrimitiveValue>
+  | Record<string, PrimitiveValue>;
 
 export type EntityDataRaw<Data extends EntityData> = {
   [K in keyof Data]: Data[K] extends ValueObject ? Data[K]["value"] : Data[K];
@@ -16,7 +20,7 @@ export type EntityDataRaw<Data extends EntityData> = {
 export type EntityDataCreateInput<
   Data extends EntityData,
   TypeFromZodSchema extends EntityDataCreate = Record<never, never>,
-  Override extends EntityDataCreate = Record<never, never>,
+  Override extends Partial<EntityDataCreate<Data>> = Record<never, never>,
 > = Merge<
   Merge<
     Partial<{
@@ -37,7 +41,7 @@ type EntityDataUpdateInputOmittedFieldsDefault =
 export type EntityDataUpdateInput<
   Data extends EntityData,
   TypeFromZodSchema extends EntityDataUpdate = Record<never, never>,
-  Override extends EntityDataUpdate = Record<never, never>,
+  Override extends Partial<EntityDataUpdate<Data>> = Record<never, never>,
 > = Merge<
   Merge<
     Omit<
