@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { APP_FILTER } from "@nestjs/core";
 import { AccountModule } from "./controllers/account.module";
+import { BankAccountModule } from "./controllers/bank-account.module";
 import { SessionModule } from "./controllers/session.module";
 import { AllExceptionFilter } from "./errors/filters/all-exception.filter";
 import { DomainExceptionFilter } from "./errors/filters/domain-exception.filter";
@@ -13,6 +14,7 @@ import { FastifyMulterEventModule } from "./events/fastify-multer.event.module";
     FastifyCookieEventModule,
     AccountModule,
     SessionModule,
+    BankAccountModule,
   ],
   providers: [
     {

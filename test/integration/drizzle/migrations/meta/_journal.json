@@ -22,6 +22,13 @@
       "when": 1727628053108,
       "tag": "0002_massive_shotgun",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1728156333932,
+      "tag": "0003_premium_cloak",
+      "breakpoints": true
     }
   ]
 }
