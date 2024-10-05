@@ -2,7 +2,7 @@ import { SessionEntity } from "@/domain/entities/session.entity";
 import { AppModule } from "@/infra/app.module";
 import { DatabaseModule } from "@/infra/database/database.module";
 import { DrizzleService } from "@/infra/database/drizzle/drizzle.service";
-import { DrizzleSessionData } from "@/infra/database/drizzle/schemas/session.schema";
+import { DrizzleSessionData } from "@/infra/database/drizzle/schemas/drizzle-session.schema";
 import { faker } from "@faker-js/faker";
 import {
   FastifyAdapter,

@@ -1,7 +1,7 @@
 import { SessionData } from "@/domain/entities/session.entity";
 import { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import * as ddl from "drizzle-orm/pg-core";
-import { drizzleUserTable } from "./user.schema";
+import { drizzleUserTable } from "./drizzle-user.schema";
 
 export type DrizzleSessionData = InferSelectModel<typeof drizzleSessionTable>;
 

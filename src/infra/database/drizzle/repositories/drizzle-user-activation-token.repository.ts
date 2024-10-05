@@ -11,8 +11,8 @@ import { UserRepository } from "@/domain/gateways/repositories/user.repository";
 import { Injectable } from "@nestjs/common";
 import { sql } from "drizzle-orm";
 import { DrizzleService, DrizzleSession } from "../drizzle.service";
-import { DrizzleUserActivationTokenData } from "../schemas/user-activation-token.schema";
-import { DrizzleUserData } from "../schemas/user.schema";
+import { DrizzleUserData } from "../schemas/drizzle-user.schema";
+import { DrizzleUserActivationTokenData } from "../schemas/drizzle-user-activation-token.schema";
 
 @Injectable()
 export class DrizzleUserActivationTokenRepository

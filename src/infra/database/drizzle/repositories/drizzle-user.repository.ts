@@ -8,7 +8,7 @@ import { UserRepository } from "@/domain/gateways/repositories/user.repository";
 import { Injectable } from "@nestjs/common";
 import { sql } from "drizzle-orm";
 import { DrizzleService, DrizzleSession } from "../drizzle.service";
-import { DrizzleUserData } from "../schemas/user.schema";
+import { DrizzleUserData } from "../schemas/drizzle-user.schema";
 
 @Injectable()
 export class DrizzleUserRepository implements UserRepository {

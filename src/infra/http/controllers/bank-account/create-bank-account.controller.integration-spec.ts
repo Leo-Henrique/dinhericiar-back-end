@@ -1,7 +1,7 @@
 import { AppModule } from "@/infra/app.module";
 import { DatabaseModule } from "@/infra/database/database.module";
 import { DrizzleService } from "@/infra/database/drizzle/drizzle.service";
-import { DrizzleBankAccountData } from "@/infra/database/drizzle/schemas/bank-account.schema";
+import { DrizzleBankAccountData } from "@/infra/database/drizzle/schemas/drizzle-bank-account.schema";
 import { faker } from "@faker-js/faker";
 import {
   FastifyAdapter,

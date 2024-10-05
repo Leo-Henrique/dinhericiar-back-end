@@ -1,7 +1,7 @@
 import { UserPasswordResetTokenData } from "@/domain/entities/user-password-reset-token.entity";
 import { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import * as ddl from "drizzle-orm/pg-core";
-import { drizzleUserTable } from "./user.schema";
+import { drizzleUserTable } from "./drizzle-user.schema";
 
 export type DrizzleUserPasswordResetTokenData = InferSelectModel<
   typeof drizzleUserPasswordResetTokenTable

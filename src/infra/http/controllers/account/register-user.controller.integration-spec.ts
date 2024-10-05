@@ -3,8 +3,8 @@ import { EmailDispatcher } from "@/domain/gateways/email-dispatcher";
 import { AppModule } from "@/infra/app.module";
 import { DatabaseModule } from "@/infra/database/database.module";
 import { DrizzleService } from "@/infra/database/drizzle/drizzle.service";
-import { DrizzleUserActivationTokenData } from "@/infra/database/drizzle/schemas/user-activation-token.schema";
-import { DrizzleUserData } from "@/infra/database/drizzle/schemas/user.schema";
+import { DrizzleUserActivationTokenData } from "@/infra/database/drizzle/schemas/drizzle-user-activation-token.schema";
+import { DrizzleUserData } from "@/infra/database/drizzle/schemas/drizzle-user.schema";
 import { faker } from "@faker-js/faker";
 import {
   FastifyAdapter,

@@ -1,7 +1,7 @@
 import { BankAccountData } from "@/domain/entities/bank-account.entity";
 import { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import * as ddl from "drizzle-orm/pg-core";
-import { drizzleUserTable } from "./user.schema";
+import { drizzleUserTable } from "./drizzle-user.schema";
 import { customMoneyType } from "./utils";
 
 export type DrizzleBankAccountData = InferSelectModel<

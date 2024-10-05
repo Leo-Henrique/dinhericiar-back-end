@@ -4,8 +4,8 @@ import { EmailDispatcher } from "@/domain/gateways/email-dispatcher";
 import { AppModule } from "@/infra/app.module";
 import { DatabaseModule } from "@/infra/database/database.module";
 import { DrizzleService } from "@/infra/database/drizzle/drizzle.service";
-import { DrizzleSessionData } from "@/infra/database/drizzle/schemas/session.schema";
-import { DrizzleUserActivationTokenData } from "@/infra/database/drizzle/schemas/user-activation-token.schema";
+import { DrizzleSessionData } from "@/infra/database/drizzle/schemas/drizzle-session.schema";
+import { DrizzleUserActivationTokenData } from "@/infra/database/drizzle/schemas/drizzle-user-activation-token.schema";
 import { faker } from "@faker-js/faker";
 import {
   FastifyAdapter,

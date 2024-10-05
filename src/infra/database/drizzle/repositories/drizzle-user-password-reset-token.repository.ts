@@ -11,8 +11,8 @@ import { UserRepository } from "@/domain/gateways/repositories/user.repository";
 import { Injectable } from "@nestjs/common";
 import { sql } from "drizzle-orm";
 import { DrizzleService } from "../drizzle.service";
-import { DrizzleUserPasswordResetTokenData } from "../schemas/user-password-reset-token.schema";
-import { DrizzleUserData } from "../schemas/user.schema";
+import { DrizzleUserData } from "../schemas/drizzle-user.schema";
+import { DrizzleUserPasswordResetTokenData } from "../schemas/drizzle-user-password-reset-token.schema";
 
 @Injectable()
 export class DrizzleUserPasswordResetTokenRepository

@@ -7,7 +7,7 @@ import { BankAccountRepository } from "@/domain/gateways/repositories/bank-accou
 import { Injectable } from "@nestjs/common";
 import { sql } from "drizzle-orm";
 import { DrizzleService } from "../drizzle.service";
-import { DrizzleBankAccountData } from "../schemas/bank-account.schema";
+import { DrizzleBankAccountData } from "../schemas/drizzle-bank-account.schema";
 
 @Injectable()
 export class DrizzleBankAccountRepository implements BankAccountRepository {

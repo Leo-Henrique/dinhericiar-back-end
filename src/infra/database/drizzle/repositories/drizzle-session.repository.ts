@@ -12,8 +12,8 @@ import {
 import { Injectable } from "@nestjs/common";
 import { sql } from "drizzle-orm";
 import { DrizzleService } from "../drizzle.service";
-import { DrizzleSessionData } from "../schemas/session.schema";
-import { DrizzleUserData } from "../schemas/user.schema";
+import { DrizzleUserData } from "../schemas/drizzle-user.schema";
+import { DrizzleSessionData } from "../schemas/drizzle-session.schema";
 
 @Injectable()
 export class DrizzleSessionRepository implements SessionRepository {

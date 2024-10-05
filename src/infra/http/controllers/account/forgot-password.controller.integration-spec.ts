@@ -2,7 +2,7 @@ import { UserPasswordResetTokenEntity } from "@/domain/entities/user-password-re
 import { AppModule } from "@/infra/app.module";
 import { DatabaseModule } from "@/infra/database/database.module";
 import { DrizzleService } from "@/infra/database/drizzle/drizzle.service";
-import { DrizzleUserPasswordResetTokenData } from "@/infra/database/drizzle/schemas/user-password-reset-token.schema";
+import { DrizzleUserPasswordResetTokenData } from "@/infra/database/drizzle/schemas/drizzle-user-password-reset-token.schema";
 import {
   FastifyAdapter,
   NestFastifyApplication,

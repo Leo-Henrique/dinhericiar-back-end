@@ -1,7 +1,7 @@
 import { UserActivationTokenData } from "@/domain/entities/user-activation-token.entity";
 import { InferInsertModel, InferSelectModel } from "drizzle-orm";
 import * as ddl from "drizzle-orm/pg-core";
-import { drizzleUserTable } from "./user.schema";
+import { drizzleUserTable } from "./drizzle-user.schema";
 
 export type DrizzleUserActivationTokenData = InferSelectModel<
   typeof drizzleUserActivationTokenTable
