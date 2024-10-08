@@ -46,9 +46,9 @@ export class DrizzleBankAccountRepository implements BankAccountRepository {
     await this.drizzle.client.execute(query);
   }
 
-  async findUniqueFromUserByInstitution(
-    user: User,
+  async findUniqueByInstitutionFromUser(
     institution: string,
+    user: User,
   ): Promise<BankAccount | null> {
     const query = sql`
       SELECT
@@ -69,9 +69,9 @@ export class DrizzleBankAccountRepository implements BankAccountRepository {
     return BankAccountEntity.create(bankAccountOnDatabase);
   }
 
-  async findUniqueFromUserByName(
-    user: User,
+  async findUniqueByNameFromUser(
     name: string,
+    user: User,
   ): Promise<BankAccount | null> {
     const query = sql`
       SELECT

@@ -38,9 +38,9 @@ export class CreateBankAccountUseCase extends UseCase<
     ...restInput
   }: CreateBankAccountUseCaseInput) {
     const userBankAccountWithSameInstitution =
-      await this.bankAccountRepository.findUniqueFromUserByInstitution(
-        authenticatedUser,
+      await this.bankAccountRepository.findUniqueByInstitutionFromUser(
         institution,
+        authenticatedUser,
       );
 
     if (userBankAccountWithSameInstitution)
@@ -51,9 +51,9 @@ export class CreateBankAccountUseCase extends UseCase<
       );
 
     const userBankAccountWithSameName =
-      await this.bankAccountRepository.findUniqueFromUserByName(
-        authenticatedUser,
+      await this.bankAccountRepository.findUniqueByNameFromUser(
         name,
+        authenticatedUser,
       );
 
     if (userBankAccountWithSameName)

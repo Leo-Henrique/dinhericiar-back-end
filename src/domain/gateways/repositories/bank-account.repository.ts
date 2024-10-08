@@ -3,13 +3,13 @@ import { User } from "@/domain/entities/user.entity";
 
 export abstract class BankAccountRepository {
   abstract createUnique(bankAccount: BankAccount): Promise<void>;
-  abstract findUniqueFromUserByInstitution(
-    user: User,
+  abstract findUniqueByInstitutionFromUser(
     institution: string,
-  ): Promise<BankAccount | null>;
-  abstract findUniqueFromUserByName(
     user: User,
+  ): Promise<BankAccount | null>;
+  abstract findUniqueByNameFromUser(
     name: string,
+    user: User,
   ): Promise<BankAccount | null>;
   abstract findUniqueMainFromUser(user: User): Promise<BankAccount | null>;
 }
