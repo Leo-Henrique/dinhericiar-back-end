@@ -39,7 +39,7 @@ export type BankAccountDataCreateInput = EntityDataCreateInput<
 
 export type BankAccountDataUpdateInput = Omit<
   EntityDataUpdateInput<BankAccountData, BankAccountSchemaToUpdate>,
-  "userId" | "institution"
+  "userId" | "slug"
 >;
 
 export class BankAccountEntity extends Entity<BankAccountData> {
@@ -65,8 +65,9 @@ export class BankAccountEntity extends Entity<BankAccountData> {
   update<Input extends BankAccountDataUpdateInput>(input: Input) {
     return this.updateEntity({
       ...input,
-      slug: input.slug ? new Slug(input.slug) : undefined,
+      institution: input.institution ? new Name(input.institution) : undefined,
       name: input.name ? new Name(input.name) : undefined,
+      slug: input.name ? Slug.createFromText(input.name) : undefined,
     });
   }
 }

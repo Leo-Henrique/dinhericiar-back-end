@@ -3,7 +3,10 @@ import {
   BankAccountDataCreateInput,
   BankAccountEntity,
 } from "@/domain/entities/bank-account.entity";
-import { DrizzleService } from "@/infra/database/drizzle/drizzle.service";
+import {
+  DrizzleService,
+  DrizzleSession,
+} from "@/infra/database/drizzle/drizzle.service";
 import { faker } from "@faker-js/faker";
 import { Injectable } from "@nestjs/common";
 import { sql } from "drizzle-orm";
@@ -37,10 +40,15 @@ export class BankAccountFactory extends Factory<BankAccountFactoryInput> {
     return { input, entity };
   }
 
-  async makeAndSave(override: BankAccountFactoryInput = {}) {
+  async makeAndSave(
+    override: BankAccountFactoryInput = {},
+    { session }: { session: DrizzleSession } = {
+      session: this.drizzle!.client,
+    },
+  ) {
     const bankAccount = this.make(override);
 
-    await this.drizzle?.client.execute(sql`
+    await session.execute(sql`
       INSERT INTO bank_accounts 
         (
           id,

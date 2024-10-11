@@ -1,5 +1,7 @@
+import { Mapper } from "@/core/mapper";
 import {
   BankAccount,
+  BankAccountDataUpdateInput,
   BankAccountEntity,
 } from "@/domain/entities/bank-account.entity";
 import { User } from "@/domain/entities/user.entity";
@@ -42,6 +44,37 @@ export class DrizzleBankAccountRepository implements BankAccountRepository {
           ${bankAccount.createdAt}
         )
     `;
+
+    await this.drizzle.client.execute(query);
+  }
+
+  async updateUnique(
+    bankAccount: BankAccount,
+    data: BankAccountDataUpdateInput,
+  ): Promise<void> {
+    const updatedBankAccountFields = bankAccount.update(data);
+    const updatedBankAccountFieldNames = Object.keys(
+      updatedBankAccountFields,
+    ) as (keyof typeof updatedBankAccountFields)[];
+
+    const query = sql`      
+      UPDATE
+        bank_accounts
+      SET
+    `;
+
+    for (let i = 0; i < updatedBankAccountFieldNames.length; i++) {
+      const fieldName = updatedBankAccountFieldNames[i];
+      const value = updatedBankAccountFields[fieldName];
+
+      query.append(sql`
+        ${sql.identifier(Mapper.toSnakeCase(fieldName))} = ${value}
+      `);
+
+      if (i < updatedBankAccountFieldNames.length - 1) query.append(sql`,`);
+    }
+
+    query.append(sql` WHERE id = ${bankAccount.id.value}`);
 
     await this.drizzle.client.execute(query);
   }
@@ -102,6 +135,29 @@ export class DrizzleBankAccountRepository implements BankAccountRepository {
         user_id = ${user.id.value}
       AND
         is_main_account = true
+      LIMIT 1
+    `;
+    const [bankAccountOnDatabase] =
+      await this.drizzle.executeToGet<DrizzleBankAccountData>(query);
+
+    if (!bankAccountOnDatabase) return null;
+
+    return BankAccountEntity.create(bankAccountOnDatabase);
+  }
+
+  async findUniqueByIdFromUser(
+    id: string,
+    user: User,
+  ): Promise<BankAccount | null> {
+    const query = sql`
+      SELECT
+        *
+      FROM
+        bank_accounts
+      WHERE
+        user_id = ${user.id.value}
+      AND
+        id = ${id}
       LIMIT 1
     `;
     const [bankAccountOnDatabase] =
