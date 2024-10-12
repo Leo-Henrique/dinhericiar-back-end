@@ -3,23 +3,14 @@ import {
   BankAccountDataCreateInput,
   BankAccountEntity,
 } from "@/domain/entities/bank-account.entity";
-import {
-  DrizzleService,
-  DrizzleSession,
-} from "@/infra/database/drizzle/drizzle.service";
+import { DrizzleService } from "@/infra/database/drizzle/drizzle.service";
+import { drizzleBankAccountTable } from "@/infra/database/drizzle/schemas/drizzle-bank-account.schema";
 import { faker } from "@faker-js/faker";
 import { Injectable } from "@nestjs/common";
-import { sql } from "drizzle-orm";
 
 type BankAccountFactoryInput = Partial<BankAccountDataCreateInput>;
 
-export type BankAccountFactoryMakeOutput = Awaited<
-  ReturnType<BankAccountFactory["make"]>
->;
-
-export type BankAccountFactoryMakeAndSaveOutput = Awaited<
-  ReturnType<BankAccountFactory["makeAndSave"]>
->;
+export type BankAccountFactoryOutput = ReturnType<BankAccountFactory["make"]>;
 
 @Injectable()
 export class BankAccountFactory extends Factory<BankAccountFactoryInput> {
@@ -40,43 +31,25 @@ export class BankAccountFactory extends Factory<BankAccountFactoryInput> {
     return { input, entity };
   }
 
-  async makeAndSave(
-    override: BankAccountFactoryInput = {},
-    { session }: { session: DrizzleSession } = {
-      session: this.drizzle!.client,
-    },
-  ) {
+  async makeAndSaveUnique(override: BankAccountFactoryInput = {}) {
     const bankAccount = this.make(override);
 
-    await session.execute(sql`
-      INSERT INTO bank_accounts 
-        (
-          id,
-          user_id,
-          slug,
-          institution,
-          name,
-          balance,
-          is_main_account,
-          inactivated_at,
-          updated_at,
-          created_at
-        )
-      VALUES
-        (
-          ${bankAccount.entity.id.value},
-          ${bankAccount.entity.userId.value},
-          ${bankAccount.entity.slug.value},
-          ${bankAccount.entity.institution.value},
-          ${bankAccount.entity.name.value},
-          ${bankAccount.entity.balance},
-          ${bankAccount.entity.isMainAccount},
-          ${bankAccount.entity.inactivatedAt},
-          ${bankAccount.entity.updatedAt},
-          ${bankAccount.entity.createdAt}
-        )
-    `);
+    await this.drizzle?.client
+      .insert(drizzleBankAccountTable)
+      .values(bankAccount.entity.getRawData());
 
     return bankAccount;
+  }
+
+  async makeAndSaveMany(
+    overrides: [BankAccountFactoryInput, ...BankAccountFactoryInput[]] = [{}],
+  ) {
+    const bankAccounts = overrides?.map(this.make);
+
+    await this.drizzle?.client
+      ?.insert(drizzleBankAccountTable)
+      .values(bankAccounts.map(bankAccount => bankAccount.entity.getRawData()));
+
+    return bankAccounts;
   }
 }

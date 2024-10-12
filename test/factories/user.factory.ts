@@ -1,17 +1,14 @@
+import { ArrayWithExactLength } from "@/core/@types/array-with-exact-length";
 import { Factory } from "@/core/factory";
 import { UserDataCreateInput, UserEntity } from "@/domain/entities/user.entity";
 import { DrizzleService } from "@/infra/database/drizzle/drizzle.service";
+import { drizzleUserTable } from "@/infra/database/drizzle/schemas/drizzle-user.schema";
 import { faker } from "@faker-js/faker";
 import { Injectable } from "@nestjs/common";
-import { sql } from "drizzle-orm";
 
 type UserFactoryInput = Partial<UserDataCreateInput>;
 
-export type UserFactoryMakeOutput = Awaited<ReturnType<UserFactory["make"]>>;
-
-export type UserFactoryMakeAndSaveOutput = Awaited<
-  ReturnType<UserFactory["makeAndSave"]>
->;
+export type UserFactoryOutput = ReturnType<UserFactory["make"]>;
 
 @Injectable()
 export class UserFactory extends Factory<UserFactoryInput> {
@@ -31,32 +28,32 @@ export class UserFactory extends Factory<UserFactoryInput> {
     return { input, entity };
   }
 
-  async makeAndSave(override: UserFactoryInput = {}) {
+  async makeAndSaveUnique(override: UserFactoryInput = {}) {
     const user = this.make(override);
 
-    await this.drizzle?.client.execute(sql`
-      INSERT INTO users
-        (
-          id,
-          email,
-          password,
-          name,
-          activated_at,
-          updated_at,
-          created_at
-        )
-      VALUES
-        (
-          ${user.entity.id.value},
-          ${user.entity.email.value},
-          ${user.entity.password.value},
-          ${user.entity.name.value},
-          ${user.entity.activatedAt},
-          ${user.entity.updatedAt},
-          ${user.entity.createdAt}
-        )
-    `);
+    await this.drizzle?.client
+      .insert(drizzleUserTable)
+      .values(user.entity.getRawData());
 
     return user;
+  }
+
+  async makeAndSaveMany(
+    overrides: [UserFactoryInput, ...UserFactoryInput[]] = [{}],
+  ) {
+    const users = overrides?.map(this.make);
+
+    await this.drizzle?.client
+      ?.insert(drizzleUserTable)
+      .values(users.map(user => user.entity.getRawData()));
+
+    return users;
+  }
+
+  async makeAndSaveManyByAmount<Amount extends number = 1>(amount?: Amount) {
+    return this.makeAndSaveMany([
+      {},
+      ...Array.from({ length: amount ?? 1 }).map(() => ({})),
+    ]) as ArrayWithExactLength<Amount, UserFactoryOutput>;
   }
 }

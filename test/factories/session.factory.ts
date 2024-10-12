@@ -4,19 +4,13 @@ import {
   SessionEntity,
 } from "@/domain/entities/session.entity";
 import { DrizzleService } from "@/infra/database/drizzle/drizzle.service";
+import { drizzleSessionTable } from "@/infra/database/drizzle/schemas/drizzle-session.schema";
 import { faker } from "@faker-js/faker";
 import { Injectable } from "@nestjs/common";
-import { sql } from "drizzle-orm";
 
 type SessionFactoryInput = Partial<SessionDataCreateInput>;
 
-export type SessionFactoryMakeOutput = Awaited<
-  ReturnType<SessionFactory["make"]>
->;
-
-export type SessionFactoryMakeAndSaveOutput = Awaited<
-  ReturnType<SessionFactory["makeAndSave"]>
->;
+export type SessionFactoryOutput = ReturnType<SessionFactory["make"]>;
 
 @Injectable()
 export class SessionFactory extends Factory<SessionFactoryInput> {
@@ -38,28 +32,25 @@ export class SessionFactory extends Factory<SessionFactoryInput> {
     return { input, entity };
   }
 
-  async makeAndSave(override: SessionFactoryInput = {}) {
+  async makeAndSaveUnique(override: SessionFactoryInput = {}) {
     const session = this.make(override);
 
-    await this.drizzle?.client.execute(sql`
-      INSERT INTO sessions 
-        (
-          user_id,
-          token,
-          expires_at,
-          updated_at,
-          created_at
-        )
-      VALUES
-        (
-          ${session.entity.userId.value},
-          ${session.entity.token.value},
-          ${session.entity.expiresAt},
-          ${session.entity.updatedAt},
-          ${session.entity.createdAt}
-        )
-    `);
+    await this.drizzle?.client
+      .insert(drizzleSessionTable)
+      .values(session.entity.getRawData());
 
     return session;
+  }
+
+  async makeAndSaveMany(
+    overrides: [SessionFactoryInput, ...SessionFactoryInput[]] = [{}],
+  ) {
+    const sessions = overrides?.map(this.make);
+
+    await this.drizzle?.client
+      ?.insert(drizzleSessionTable)
+      .values(sessions.map(session => session.entity.getRawData()));
+
+    return sessions;
   }
 }

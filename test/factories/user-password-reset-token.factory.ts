@@ -4,19 +4,15 @@ import {
   UserPasswordResetTokenEntity,
 } from "@/domain/entities/user-password-reset-token.entity";
 import { DrizzleService } from "@/infra/database/drizzle/drizzle.service";
+import { drizzleUserPasswordResetTokenTable } from "@/infra/database/drizzle/schemas/drizzle-user-password-reset-token.schema";
 import { faker } from "@faker-js/faker";
 import { Injectable } from "@nestjs/common";
-import { sql } from "drizzle-orm";
 
 type UserPasswordResetTokenFactoryInput =
   Partial<UserPasswordResetTokenDataCreateInput>;
 
-export type UserPasswordResetTokenFactoryMakeOutput = Awaited<
-  ReturnType<UserPasswordResetTokenFactory["make"]>
->;
-
-export type UserPasswordResetTokenFactoryMakeAndSaveOutput = Awaited<
-  ReturnType<UserPasswordResetTokenFactory["makeAndSave"]>
+export type UserPasswordResetTokenFactoryOutput = ReturnType<
+  UserPasswordResetTokenFactory["make"]
 >;
 
 @Injectable()
@@ -39,24 +35,32 @@ export class UserPasswordResetTokenFactory extends Factory<UserPasswordResetToke
     return { input, entity };
   }
 
-  async makeAndSave(override: UserPasswordResetTokenFactoryInput = {}) {
+  async makeAndSaveUnique(override: UserPasswordResetTokenFactoryInput = {}) {
     const userPasswordResetToken = this.make(override);
 
-    await this.drizzle?.client.execute(sql`
-      INSERT INTO user_password_reset_tokens 
-        (
-          user_id,
-          token,
-          expires_at
-        )
-      VALUES
-        (
-          ${userPasswordResetToken.entity.userId.value},
-          ${userPasswordResetToken.entity.token.value},
-          ${userPasswordResetToken.entity.expiresAt}
-        )
-    `);
+    await this.drizzle?.client
+      .insert(drizzleUserPasswordResetTokenTable)
+      .values(userPasswordResetToken.entity.getRawData());
 
     return userPasswordResetToken;
+  }
+
+  async makeAndSaveMany(
+    overrides: [
+      UserPasswordResetTokenFactoryInput,
+      ...UserPasswordResetTokenFactoryInput[],
+    ] = [{}],
+  ) {
+    const userPasswordResetTokens = overrides?.map(this.make);
+
+    await this.drizzle?.client
+      ?.insert(drizzleUserPasswordResetTokenTable)
+      .values(
+        userPasswordResetTokens.map(userPasswordResetToken =>
+          userPasswordResetToken.entity.getRawData(),
+        ),
+      );
+
+    return userPasswordResetTokens;
   }
 }
