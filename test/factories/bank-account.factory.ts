@@ -56,9 +56,8 @@ export class BankAccountFactory extends Factory<BankAccountFactoryInput> {
     amount: Amount = 1 as Amount,
     override: BankAccountFactoryInput = {},
   ) {
-    return this.makeAndSaveMany([
-      override,
-      ...Array.from({ length: amount - 1 }).map(() => override),
-    ]) as ArrayWithExactLength<Amount, BankAccountFactoryOutput>;
+    return this.makeAndSaveMany(
+      Array.from({ length: amount }).map(() => override),
+    ) as ArrayWithExactLength<Amount, BankAccountFactoryOutput>;
   }
 }

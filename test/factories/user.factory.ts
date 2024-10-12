@@ -38,9 +38,7 @@ export class UserFactory extends Factory<UserFactoryInput> {
     return user;
   }
 
-  async makeAndSaveMany(
-    overrides: [UserFactoryInput, ...UserFactoryInput[]] = [{}],
-  ) {
+  async makeAndSaveMany(overrides: UserFactoryInput[] = [{}]) {
     const users = overrides?.map(this.make);
 
     await this.drizzle?.client
@@ -50,10 +48,12 @@ export class UserFactory extends Factory<UserFactoryInput> {
     return users;
   }
 
-  async makeAndSaveManyByAmount<Amount extends number = 1>(amount?: Amount) {
-    return this.makeAndSaveMany([
-      {},
-      ...Array.from({ length: amount ?? 1 }).map(() => ({})),
-    ]) as ArrayWithExactLength<Amount, UserFactoryOutput>;
+  async makeAndSaveManyByAmount<Amount extends number>(
+    amount: Amount = 1 as Amount,
+    override: UserFactoryInput = {},
+  ) {
+    return this.makeAndSaveMany(
+      Array.from({ length: amount }).map(() => override),
+    ) as ArrayWithExactLength<Amount, UserFactoryOutput>;
   }
 }

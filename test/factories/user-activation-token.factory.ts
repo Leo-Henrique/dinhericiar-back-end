@@ -45,12 +45,7 @@ export class UserActivationTokenFactory extends Factory<UserActivationTokenFacto
     return userActivationToken;
   }
 
-  async makeAndSaveMany(
-    overrides: [
-      UserActivationTokenFactoryInput,
-      ...UserActivationTokenFactoryInput[],
-    ] = [{}],
-  ) {
+  async makeAndSaveMany(overrides: UserActivationTokenFactoryInput[] = [{}]) {
     const userActivationTokens = overrides?.map(this.make);
 
     await this.drizzle?.client

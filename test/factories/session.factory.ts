@@ -42,9 +42,7 @@ export class SessionFactory extends Factory<SessionFactoryInput> {
     return session;
   }
 
-  async makeAndSaveMany(
-    overrides: [SessionFactoryInput, ...SessionFactoryInput[]] = [{}],
-  ) {
+  async makeAndSaveMany(overrides: SessionFactoryInput[] = [{}]) {
     const sessions = overrides?.map(this.make);
 
     await this.drizzle?.client

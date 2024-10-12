@@ -46,10 +46,7 @@ export class UserPasswordResetTokenFactory extends Factory<UserPasswordResetToke
   }
 
   async makeAndSaveMany(
-    overrides: [
-      UserPasswordResetTokenFactoryInput,
-      ...UserPasswordResetTokenFactoryInput[],
-    ] = [{}],
+    overrides: UserPasswordResetTokenFactoryInput[] = [{}],
   ) {
     const userPasswordResetTokens = overrides?.map(this.make);
 
