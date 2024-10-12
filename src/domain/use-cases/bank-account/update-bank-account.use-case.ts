@@ -1,11 +1,9 @@
 import { Either, left, right } from "@/core/either";
 import { UseCase } from "@/core/use-case";
 import { BankAccount } from "@/domain/entities/bank-account.entity";
-import {
-  BankAccountSchemaToIdentify,
-  BankAccountSchemaToUpdate,
-} from "@/domain/entities/schemas/bank-account.schema";
+import { BankAccountSchemaToUpdate } from "@/domain/entities/schemas/bank-account.schema";
 import { User } from "@/domain/entities/user.entity";
+import { UniqueEntityId } from "@/domain/entities/value-objects/unique-entity.id";
 import {
   ResourceAlreadyExistsError,
   ResourceNotFoundError,
@@ -15,7 +13,7 @@ import { Injectable } from "@nestjs/common";
 
 type UpdateBankAccountUseCaseInput = BankAccountSchemaToUpdate & {
   authenticatedUser: User;
-  bankAccountId: BankAccountSchemaToIdentify["id"];
+  bankAccountId: UniqueEntityId["value"];
 };
 
 type UpdateBankAccountUseCaseOutput = Either<

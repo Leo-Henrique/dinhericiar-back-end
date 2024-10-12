@@ -1,4 +1,4 @@
-import { BankAccountEntity } from "@/domain/entities/bank-account.entity";
+import { UniqueEntityId } from "@/domain/entities/value-objects/unique-entity.id";
 import { DeleteBankAccountUseCase } from "@/domain/use-cases/bank-account/delete-bank-account.use-case";
 import { Controller, Delete, HttpCode, Param } from "@nestjs/common";
 import { ApiTags } from "@nestjs/swagger";
@@ -10,8 +10,9 @@ import {
 } from "../../auth/authenticated-user-decorator";
 import { ZodSchemaPipe } from "../../middlewares/zod-schema-pipe";
 
-const deleteBankAccountControllerParamsSchema =
-  BankAccountEntity.schema.toIdentify;
+const deleteBankAccountControllerParamsSchema = z.object({
+  id: UniqueEntityId.schema,
+});
 
 export type DeleteBankAccountControllerParams = z.infer<
   typeof deleteBankAccountControllerParamsSchema

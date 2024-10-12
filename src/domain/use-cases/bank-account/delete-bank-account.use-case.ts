@@ -1,15 +1,15 @@
 import { Either, left, right } from "@/core/either";
 import { UseCase } from "@/core/use-case";
 import { BankAccount } from "@/domain/entities/bank-account.entity";
-import { BankAccountSchemaToIdentify } from "@/domain/entities/schemas/bank-account.schema";
 import { User } from "@/domain/entities/user.entity";
+import { UniqueEntityId } from "@/domain/entities/value-objects/unique-entity.id";
 import { ResourceNotFoundError } from "@/domain/errors";
 import { BankAccountRepository } from "@/domain/gateways/repositories/bank-account.repository";
 import { Injectable } from "@nestjs/common";
 
 type DeleteBankAccountUseCaseInput = {
   authenticatedUser: User;
-  bankAccountId: BankAccountSchemaToIdentify["id"];
+  bankAccountId: UniqueEntityId["value"];
 };
 
 type DeleteBankAccountUseCaseOutput = Either<
