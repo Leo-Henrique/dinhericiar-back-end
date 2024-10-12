@@ -176,4 +176,27 @@ export class DrizzleBankAccountRepository implements BankAccountRepository {
 
     return BankAccountEntity.create(bankAccountOnDatabase);
   }
+
+  async findUniqueBySlugFromUser(
+    slug: string,
+    user: User,
+  ): Promise<BankAccount | null> {
+    const query = sql`
+      SELECT
+        *
+      FROM
+        bank_accounts
+      WHERE
+        user_id = ${user.id.value}
+      AND
+        slug = ${slug}
+      LIMIT 1
+    `;
+    const [bankAccountOnDatabase] =
+      await this.drizzle.executeToGet<DrizzleBankAccountData>(query);
+
+    if (!bankAccountOnDatabase) return null;
+
+    return BankAccountEntity.create(bankAccountOnDatabase);
+  }
 }

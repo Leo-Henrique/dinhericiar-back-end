@@ -24,4 +24,8 @@ export abstract class BankAccountRepository {
     id: string,
     user: User,
   ): Promise<BankAccount | null>;
+  abstract findUniqueBySlugFromUser(
+    id: string,
+    user: User,
+  ): Promise<BankAccount | null>;
 }
