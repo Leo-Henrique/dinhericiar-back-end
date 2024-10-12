@@ -13,16 +13,13 @@ import { sql } from "drizzle-orm";
 import request from "supertest";
 import {
   BankAccountFactory,
-  BankAccountFactoryMakeAndSaveOutput,
+  BankAccountFactoryOutput,
 } from "test/factories/bank-account.factory";
 import {
   SessionFactory,
-  SessionFactoryMakeAndSaveOutput,
+  SessionFactoryOutput,
 } from "test/factories/session.factory";
-import {
-  UserFactory,
-  UserFactoryMakeAndSaveOutput,
-} from "test/factories/user.factory";
+import { UserFactory, UserFactoryOutput } from "test/factories/user.factory";
 import { getSessionCookie } from "test/integration/get-session-cookie";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { UpdateBankAccountControllerBody } from "./update-bank-account.controller";
@@ -34,12 +31,12 @@ describe("[Controller] PUT /bank-accounts/:id", () => {
   let sessionFactory: SessionFactory;
   let bankAccountFactory: BankAccountFactory;
 
-  let user: UserFactoryMakeAndSaveOutput;
-  let anotherUser: UserFactoryMakeAndSaveOutput;
-  let session: SessionFactoryMakeAndSaveOutput;
-  let sessionFromAnotherUser: SessionFactoryMakeAndSaveOutput;
-  let bankAccount: BankAccountFactoryMakeAndSaveOutput;
-  let bankAccountFromAnotherUser: BankAccountFactoryMakeAndSaveOutput;
+  let user: UserFactoryOutput;
+  let anotherUser: UserFactoryOutput;
+  let session: SessionFactoryOutput;
+  let sessionFromAnotherUser: SessionFactoryOutput;
+  let bankAccount: BankAccountFactoryOutput;
+  let bankAccountFromAnotherUser: BankAccountFactoryOutput;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -55,28 +52,16 @@ describe("[Controller] PUT /bank-accounts/:id", () => {
     sessionFactory = moduleRef.get(SessionFactory);
     bankAccountFactory = moduleRef.get(BankAccountFactory);
 
-    user = await userFactory.makeAndSave();
-    anotherUser = await userFactory.makeAndSave();
-    session = await sessionFactory.makeAndSave({
-      userId: user.entity.id.value,
-    });
-    sessionFromAnotherUser = await sessionFactory.makeAndSave({
-      userId: anotherUser.entity.id.value,
-    });
-
+    [user, anotherUser] = await userFactory.makeAndSaveManyByAmount(2);
+    [session, sessionFromAnotherUser] = await sessionFactory.makeAndSaveMany([
+      { userId: user.entity.id.value },
+      { userId: anotherUser.entity.id.value },
+    ]);
     [bankAccount, bankAccountFromAnotherUser] =
-      await drizzle.client.transaction(session => {
-        return Promise.all([
-          bankAccountFactory.makeAndSave(
-            { userId: user.entity.id.value },
-            { session },
-          ),
-          bankAccountFactory.makeAndSave(
-            { userId: anotherUser.entity.id.value },
-            { session },
-          ),
-        ]);
-      });
+      await bankAccountFactory.makeAndSaveMany([
+        { userId: user.entity.id.value },
+        { userId: anotherUser.entity.id.value },
+      ]);
 
     await app.init();
     await app.getHttpAdapter().getInstance().ready();
@@ -125,7 +110,7 @@ describe("[Controller] PUT /bank-accounts/:id", () => {
   });
 
   it("should not be able to update a bank account as the main one if the user already has one", async () => {
-    const userMainBankAccount = await bankAccountFactory.makeAndSave({
+    const userMainBankAccount = await bankAccountFactory.makeAndSaveUnique({
       userId: user.entity.id.value,
       isMainAccount: true,
     });
@@ -160,7 +145,7 @@ describe("[Controller] PUT /bank-accounts/:id", () => {
   });
 
   it("should not be able to update a bank account with an name already registered by the same user", async () => {
-    const anotherBankAccount = await bankAccountFactory.makeAndSave({
+    const anotherBankAccount = await bankAccountFactory.makeAndSaveUnique({
       userId: user.entity.id.value,
     });
 
@@ -194,7 +179,7 @@ describe("[Controller] PUT /bank-accounts/:id", () => {
   });
 
   it("should not be able to update a bank account with an institution name already registered by the same user", async () => {
-    const anotherBankAccount = await bankAccountFactory.makeAndSave({
+    const anotherBankAccount = await bankAccountFactory.makeAndSaveUnique({
       userId: user.entity.id.value,
     });
 

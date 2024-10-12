@@ -13,10 +13,7 @@ import { compare } from "bcryptjs";
 import { sql } from "drizzle-orm";
 import request from "supertest";
 import { UserPasswordResetTokenFactory } from "test/factories/user-password-reset-token.factory";
-import {
-  UserFactory,
-  UserFactoryMakeAndSaveOutput,
-} from "test/factories/user.factory";
+import { UserFactory, UserFactoryOutput } from "test/factories/user.factory";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { ResetPasswordControllerBody } from "./reset-password.controller";
 
@@ -26,7 +23,7 @@ describe("[Controller] PATCH /account/reset-password", () => {
   let userFactory: UserFactory;
   let userPasswordResetTokenFactory: UserPasswordResetTokenFactory;
 
-  let user: UserFactoryMakeAndSaveOutput;
+  let user: UserFactoryOutput;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -43,7 +40,7 @@ describe("[Controller] PATCH /account/reset-password", () => {
       UserPasswordResetTokenFactory,
     );
 
-    user = await userFactory.makeAndSave();
+    user = await userFactory.makeAndSaveUnique();
 
     await app.init();
     await app.getHttpAdapter().getInstance().ready();
@@ -55,7 +52,7 @@ describe("[Controller] PATCH /account/reset-password", () => {
 
   it("should be able to reset user password", async () => {
     const userPasswordResetToken =
-      await userPasswordResetTokenFactory.makeAndSave({
+      await userPasswordResetTokenFactory.makeAndSaveUnique({
         userId: user.entity.id.value,
       });
 
@@ -110,7 +107,7 @@ describe("[Controller] PATCH /account/reset-password", () => {
 
   it("should not be able to reset user password with expired token", async () => {
     const expiredUserPasswordResetToken =
-      await userPasswordResetTokenFactory.makeAndSave({
+      await userPasswordResetTokenFactory.makeAndSaveUnique({
         userId: user.entity.id.value,
         expiresAt: new Date(),
       });

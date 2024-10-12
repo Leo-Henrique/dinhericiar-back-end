@@ -13,12 +13,9 @@ import { sql } from "drizzle-orm";
 import request from "supertest";
 import {
   SessionFactory,
-  SessionFactoryMakeAndSaveOutput,
+  SessionFactoryOutput,
 } from "test/factories/session.factory";
-import {
-  UserFactory,
-  UserFactoryMakeAndSaveOutput,
-} from "test/factories/user.factory";
+import { UserFactory, UserFactoryOutput } from "test/factories/user.factory";
 import { getSessionCookie } from "test/integration/get-session-cookie";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
@@ -28,8 +25,8 @@ describe("[Controller] GET /sessions/me", () => {
   let userFactory: UserFactory;
   let sessionFactory: SessionFactory;
 
-  let user: UserFactoryMakeAndSaveOutput;
-  let session: SessionFactoryMakeAndSaveOutput;
+  let user: UserFactoryOutput;
+  let session: SessionFactoryOutput;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -44,8 +41,8 @@ describe("[Controller] GET /sessions/me", () => {
     userFactory = moduleRef.get(UserFactory);
     sessionFactory = moduleRef.get(SessionFactory);
 
-    user = await userFactory.makeAndSave();
-    session = await sessionFactory.makeAndSave({
+    user = await userFactory.makeAndSaveUnique();
+    session = await sessionFactory.makeAndSaveUnique({
       userId: user.entity.id.value,
     });
 
@@ -76,7 +73,7 @@ describe("[Controller] GET /sessions/me", () => {
   });
 
   it("should be able to renew current session when obtaining", async () => {
-    const sessionAlmostExpiring = await sessionFactory.makeAndSave({
+    const sessionAlmostExpiring = await sessionFactory.makeAndSaveUnique({
       userId: user.entity.id.value,
       expiresAt: new Date(Date.now() + 1000 * 60 * 5),
     });
@@ -112,7 +109,7 @@ describe("[Controller] GET /sessions/me", () => {
   });
 
   it("should not be able to get an expired session", async () => {
-    const expiredSession = await sessionFactory.makeAndSave({
+    const expiredSession = await sessionFactory.makeAndSaveUnique({
       userId: user.entity.id.value,
       expiresAt: new Date(),
     });

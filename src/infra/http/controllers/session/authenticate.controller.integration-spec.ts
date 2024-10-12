@@ -15,10 +15,7 @@ import { Test } from "@nestjs/testing";
 import { hash } from "bcryptjs";
 import { sql } from "drizzle-orm";
 import request from "supertest";
-import {
-  UserFactory,
-  UserFactoryMakeAndSaveOutput,
-} from "test/factories/user.factory";
+import { UserFactory, UserFactoryOutput } from "test/factories/user.factory";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { SESSION_COOKIE_NAME } from "../../auth/session-cookie-name";
 import { AuthenticateControllerBody } from "./authenticate.controller";
@@ -29,7 +26,7 @@ describe("[Controller] POST /sessions", () => {
   let emailDispatcher: EmailDispatcher;
   let userFactory: UserFactory;
 
-  let user: UserFactoryMakeAndSaveOutput;
+  let user: UserFactoryOutput;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -46,7 +43,7 @@ describe("[Controller] POST /sessions", () => {
 
     const password = faker.internet.password();
 
-    user = await userFactory.makeAndSave({
+    user = await userFactory.makeAndSaveUnique({
       password: await hash(password, 1),
       activatedAt: faker.date.recent(),
     });
@@ -103,7 +100,7 @@ describe("[Controller] POST /sessions", () => {
 
   it("should be able to create a new activation token when user not activated", async () => {
     const password = faker.internet.password();
-    const anotherUser = await userFactory.makeAndSave({
+    const anotherUser = await userFactory.makeAndSaveUnique({
       password: await hash(password, 1),
       activatedAt: null,
     });

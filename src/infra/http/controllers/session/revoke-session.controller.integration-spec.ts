@@ -11,12 +11,9 @@ import { sql } from "drizzle-orm";
 import request from "supertest";
 import {
   SessionFactory,
-  SessionFactoryMakeAndSaveOutput,
+  SessionFactoryOutput,
 } from "test/factories/session.factory";
-import {
-  UserFactory,
-  UserFactoryMakeAndSaveOutput,
-} from "test/factories/user.factory";
+import { UserFactory, UserFactoryOutput } from "test/factories/user.factory";
 import { getSessionCookie } from "test/integration/get-session-cookie";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { SESSION_COOKIE_NAME } from "../../auth/session-cookie-name";
@@ -27,8 +24,8 @@ describe("[Controller] DELETE /sessions/me", () => {
   let userFactory: UserFactory;
   let sessionFactory: SessionFactory;
 
-  let user: UserFactoryMakeAndSaveOutput;
-  let session: SessionFactoryMakeAndSaveOutput;
+  let user: UserFactoryOutput;
+  let session: SessionFactoryOutput;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -43,8 +40,8 @@ describe("[Controller] DELETE /sessions/me", () => {
     userFactory = moduleRef.get(UserFactory);
     sessionFactory = moduleRef.get(SessionFactory);
 
-    user = await userFactory.makeAndSave();
-    session = await sessionFactory.makeAndSave({
+    user = await userFactory.makeAndSaveUnique();
+    session = await sessionFactory.makeAndSaveUnique({
       userId: user.entity.id.value,
     });
 

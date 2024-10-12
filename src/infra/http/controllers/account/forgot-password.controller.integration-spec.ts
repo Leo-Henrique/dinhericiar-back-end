@@ -11,10 +11,7 @@ import { Test } from "@nestjs/testing";
 import { sql } from "drizzle-orm";
 import request from "supertest";
 import { UserActivationTokenFactory } from "test/factories/user-activation-token.factory";
-import {
-  UserFactory,
-  UserFactoryMakeAndSaveOutput,
-} from "test/factories/user.factory";
+import { UserFactory, UserFactoryOutput } from "test/factories/user.factory";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { ForgotPasswordControllerBody } from "./forgot-password.controller";
 
@@ -23,7 +20,7 @@ describe("[Controller] POST /account/forgot-password", () => {
   let drizzle: DrizzleService;
   let userFactory: UserFactory;
 
-  let user: UserFactoryMakeAndSaveOutput;
+  let user: UserFactoryOutput;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -37,7 +34,7 @@ describe("[Controller] POST /account/forgot-password", () => {
     drizzle = moduleRef.get(DrizzleService);
     userFactory = moduleRef.get(UserFactory);
 
-    user = await userFactory.makeAndSave();
+    user = await userFactory.makeAndSaveUnique();
 
     await app.init();
     await app.getHttpAdapter().getInstance().ready();

@@ -13,12 +13,9 @@ import request from "supertest";
 import { BankAccountFactory } from "test/factories/bank-account.factory";
 import {
   SessionFactory,
-  SessionFactoryMakeAndSaveOutput,
+  SessionFactoryOutput,
 } from "test/factories/session.factory";
-import {
-  UserFactory,
-  UserFactoryMakeAndSaveOutput,
-} from "test/factories/user.factory";
+import { UserFactory, UserFactoryOutput } from "test/factories/user.factory";
 import { getSessionCookie } from "test/integration/get-session-cookie";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { CreateBankAccountControllerBody } from "./create-bank-account.controller";
@@ -30,10 +27,10 @@ describe("[Controller] POST /bank-accounts", () => {
   let sessionFactory: SessionFactory;
   let bankAccountFactory: BankAccountFactory;
 
-  let user: UserFactoryMakeAndSaveOutput;
-  let anotherUser: UserFactoryMakeAndSaveOutput;
-  let session: SessionFactoryMakeAndSaveOutput;
-  let sessionFromAnotherUser: SessionFactoryMakeAndSaveOutput;
+  let user: UserFactoryOutput;
+  let anotherUser: UserFactoryOutput;
+  let session: SessionFactoryOutput;
+  let sessionFromAnotherUser: SessionFactoryOutput;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -49,14 +46,12 @@ describe("[Controller] POST /bank-accounts", () => {
     sessionFactory = moduleRef.get(SessionFactory);
     bankAccountFactory = moduleRef.get(BankAccountFactory);
 
-    user = await userFactory.makeAndSave();
-    anotherUser = await userFactory.makeAndSave();
-    session = await sessionFactory.makeAndSave({
-      userId: user.entity.id.value,
-    });
-    sessionFromAnotherUser = await sessionFactory.makeAndSave({
-      userId: anotherUser.entity.id.value,
-    });
+    [user, anotherUser] = await userFactory.makeAndSaveManyByAmount(2);
+    [session, sessionFromAnotherUser] = await sessionFactory.makeAndSaveMany([
+      { userId: user.entity.id.value },
+      { userId: anotherUser.entity.id.value },
+    ]);
+
     await app.init();
     await app.getHttpAdapter().getInstance().ready();
   });
@@ -100,7 +95,7 @@ describe("[Controller] POST /bank-accounts", () => {
   });
 
   it("should not be able to create a bank account as the main one if the user already has one", async () => {
-    await bankAccountFactory.makeAndSave({
+    await bankAccountFactory.makeAndSaveUnique({
       userId: user.entity.id.value,
       isMainAccount: true,
     });
@@ -129,7 +124,7 @@ describe("[Controller] POST /bank-accounts", () => {
   });
 
   it("should not be able to create a bank account with an name already registered by the same user", async () => {
-    const bankAccount = await bankAccountFactory.makeAndSave({
+    const bankAccount = await bankAccountFactory.makeAndSaveUnique({
       userId: user.entity.id.value,
     });
 
@@ -157,7 +152,7 @@ describe("[Controller] POST /bank-accounts", () => {
   });
 
   it("should not be able to create a bank account with an institution name already registered by the same user", async () => {
-    const bankAccount = await bankAccountFactory.makeAndSave({
+    const bankAccount = await bankAccountFactory.makeAndSaveUnique({
       userId: user.entity.id.value,
     });
     const input = {

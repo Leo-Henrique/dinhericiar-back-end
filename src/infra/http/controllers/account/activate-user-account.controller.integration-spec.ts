@@ -11,10 +11,7 @@ import { Test } from "@nestjs/testing";
 import { sql } from "drizzle-orm";
 import request from "supertest";
 import { UserActivationTokenFactory } from "test/factories/user-activation-token.factory";
-import {
-  UserFactory,
-  UserFactoryMakeAndSaveOutput,
-} from "test/factories/user.factory";
+import { UserFactory, UserFactoryOutput } from "test/factories/user.factory";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { ActivateUserAccountControllerBody } from "./activate-user-account.controller";
 
@@ -24,7 +21,7 @@ describe("[Controller] PATCH /account/activate", () => {
   let userFactory: UserFactory;
   let userActivationTokenFactory: UserActivationTokenFactory;
 
-  let user: UserFactoryMakeAndSaveOutput;
+  let user: UserFactoryOutput;
 
   beforeAll(async () => {
     const moduleRef = await Test.createTestingModule({
@@ -39,7 +36,7 @@ describe("[Controller] PATCH /account/activate", () => {
     userFactory = moduleRef.get(UserFactory);
     userActivationTokenFactory = moduleRef.get(UserActivationTokenFactory);
 
-    user = await userFactory.makeAndSave();
+    user = await userFactory.makeAndSaveUnique();
 
     await app.init();
     await app.getHttpAdapter().getInstance().ready();
@@ -50,9 +47,10 @@ describe("[Controller] PATCH /account/activate", () => {
   });
 
   it("should be able to activate user account", async () => {
-    const userActivationToken = await userActivationTokenFactory.makeAndSave({
-      userId: user.entity.id.value,
-    });
+    const userActivationToken =
+      await userActivationTokenFactory.makeAndSaveUnique({
+        userId: user.entity.id.value,
+      });
 
     const response = await request(app.getHttpServer())
       .patch("/account/activate")
@@ -99,9 +97,9 @@ describe("[Controller] PATCH /account/activate", () => {
   });
 
   it("should not be able to activate an account with expired token", async () => {
-    const anotherUser = await userFactory.makeAndSave();
+    const anotherUser = await userFactory.makeAndSaveUnique();
     const expiredUserActivationToken =
-      await userActivationTokenFactory.makeAndSave({
+      await userActivationTokenFactory.makeAndSaveUnique({
         userId: anotherUser.entity.id.value,
         expiresAt: new Date(),
       });
@@ -120,7 +118,7 @@ describe("[Controller] PATCH /account/activate", () => {
 
   it("should not be able to activate an already activated account", async () => {
     const expiredUserActivationToken =
-      await userActivationTokenFactory.makeAndSave({
+      await userActivationTokenFactory.makeAndSaveUnique({
         userId: user.entity.id.value,
       });
 
