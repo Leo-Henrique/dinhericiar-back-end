@@ -10,6 +10,7 @@ export abstract class BankAccountRepository {
     bankAccount: BankAccount,
     data: BankAccountDataUpdateInput,
   ): Promise<void>;
+  abstract deleteUnique(bankAccount: BankAccount): Promise<void>;
   abstract findUniqueByInstitutionFromUser(
     institution: string,
     user: User,

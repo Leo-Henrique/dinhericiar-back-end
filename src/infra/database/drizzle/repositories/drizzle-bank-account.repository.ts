@@ -79,6 +79,17 @@ export class DrizzleBankAccountRepository implements BankAccountRepository {
     await this.drizzle.client.execute(query);
   }
 
+  async deleteUnique(bankAccount: BankAccount): Promise<void> {
+    const query = sql`
+      DELETE FROM 
+        bank_accounts
+      WHERE
+        id = ${bankAccount.id.value}
+    `;
+
+    await this.drizzle.client.execute(query);
+  }
+
   async findUniqueByInstitutionFromUser(
     institution: string,
     user: User,
