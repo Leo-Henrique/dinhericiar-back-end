@@ -1,5 +1,4 @@
 import { BankAccountEntity } from "@/domain/entities/bank-account.entity";
-import { UniqueEntityId } from "@/domain/entities/value-objects/unique-entity.id";
 import { UpdateBankAccountUseCase } from "@/domain/use-cases/bank-account/update-bank-account.use-case";
 import { extendApi } from "@anatine/zod-openapi";
 import { Body, Controller, HttpCode, Param, Put } from "@nestjs/common";
@@ -12,9 +11,8 @@ import {
 } from "../../auth/authenticated-user-decorator";
 import { ZodSchemaPipe } from "../../middlewares/zod-schema-pipe";
 
-const updateBankAccountControllerParamsSchema = z.object({
-  id: UniqueEntityId.schema,
-});
+const updateBankAccountControllerParamsSchema =
+  BankAccountEntity.schema.toIdentify;
 
 const updateBankAccountControllerBodySchema = BankAccountEntity.schema.toUpdate
   .extend({
