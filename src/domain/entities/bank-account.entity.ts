@@ -23,7 +23,6 @@ export type BankAccountData = {
   name: Name;
   balance: number;
   isMainAccount: boolean;
-  inactivatedAt: Date | null;
   updatedAt: Date | null;
   createdAt: Date;
 };
@@ -51,7 +50,6 @@ export class BankAccountEntity extends Entity<BankAccountData> {
     return new this().createEntity({
       updatedAt: null,
       createdAt: new Date(),
-      inactivatedAt: null,
       isMainAccount: false,
       ...input,
       id: new UniqueEntityId(input.id),

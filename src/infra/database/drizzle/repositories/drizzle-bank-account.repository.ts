@@ -26,7 +26,6 @@ export class DrizzleBankAccountRepository implements BankAccountRepository {
           name,
           balance,
           is_main_account,
-          inactivated_at,
           updated_at,
           created_at
         )
@@ -39,7 +38,6 @@ export class DrizzleBankAccountRepository implements BankAccountRepository {
           ${bankAccount.name.value},
           ${bankAccount.balance},
           ${bankAccount.isMainAccount},
-          ${bankAccount.inactivatedAt},
           ${bankAccount.updatedAt},
           ${bankAccount.createdAt}
         )

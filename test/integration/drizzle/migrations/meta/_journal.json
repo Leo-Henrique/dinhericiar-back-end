@@ -43,6 +43,13 @@
       "when": 1728744790966,
       "tag": "0005_orange_blizzard",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1728747059224,
+      "tag": "0006_modern_captain_stacy",
+      "breakpoints": true
     }
   ]
 }

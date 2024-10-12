@@ -28,7 +28,6 @@ export const drizzleBankAccountTable = ddl.pgTable(
     name: ddl.varchar("name").notNull(),
     balance: customMoneyType("balance").notNull(),
     isMainAccount: ddl.boolean("is_main_account").notNull(),
-    inactivatedAt: ddl.timestamp("inactivated_at", { withTimezone: true }),
     updatedAt: ddl.timestamp("updated_at", { withTimezone: true }),
     createdAt: ddl.timestamp("created_at", { withTimezone: true }).notNull(),
   } satisfies Record<keyof BankAccountData, ddl.PgColumnBuilderBase>,
