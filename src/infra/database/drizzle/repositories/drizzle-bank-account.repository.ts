@@ -1,4 +1,5 @@
 import { Mapper } from "@/core/mapper";
+import { PaginationParams } from "@/core/schemas/pagination-params";
 import {
   BankAccount,
   BankAccountDataUpdateInput,
@@ -8,7 +9,7 @@ import { User } from "@/domain/entities/user.entity";
 import { BankAccountRepository } from "@/domain/gateways/repositories/bank-account.repository";
 import { Injectable } from "@nestjs/common";
 import { sql } from "drizzle-orm";
-import { DrizzleService } from "../drizzle.service";
+import { DrizzleService, DrizzleSession } from "../drizzle.service";
 import { DrizzleBankAccountData } from "../schemas/drizzle-bank-account.schema";
 
 @Injectable()
@@ -198,5 +199,83 @@ export class DrizzleBankAccountRepository implements BankAccountRepository {
     if (!bankAccountOnDatabase) return null;
 
     return BankAccountEntity.create(bankAccountOnDatabase);
+  }
+
+  async findManyFromUser(
+    user: User,
+    {
+      itemsPerPage,
+      page,
+      session,
+    }: PaginationParams & { session?: DrizzleSession },
+  ): Promise<BankAccount[]> {
+    session = session ?? this.drizzle.client;
+
+    const query = sql`
+      SELECT
+        *
+      FROM
+        bank_accounts
+      WHERE
+        user_id = ${user.id.value}
+      ORDER BY
+        is_main_account DESC,
+        created_at DESC
+      LIMIT
+        ${itemsPerPage}
+      OFFSET
+        ${itemsPerPage * (page - 1)}
+    `;
+    const bankAccountsOnDatabase =
+      await this.drizzle.executeToGet<DrizzleBankAccountData>(query, {
+        session,
+      });
+
+    return bankAccountsOnDatabase.map(
+      BankAccountEntity.create.bind(BankAccountEntity),
+    );
+  }
+
+  async countAllFromUser(
+    user: User,
+    { session }: { session: DrizzleSession } = { session: this.drizzle.client },
+  ): Promise<number> {
+    type Row = { totalBankAccounts: number };
+
+    const query = sql`
+      SELECT
+        COUNT(*)::INTEGER AS total_bank_accounts
+      FROM
+        bank_accounts
+      WHERE
+        user_id = ${user.id.value}
+    `;
+    const [{ totalBankAccounts }] = await this.drizzle.executeToGet<Row>(
+      query,
+      { session },
+    );
+
+    return totalBankAccounts;
+  }
+
+  async sumAllBalanceFromUser(
+    user: User,
+    { session }: { session: DrizzleSession } = { session: this.drizzle.client },
+  ): Promise<number> {
+    type Row = { totalBalance: number };
+
+    const query = sql`
+      SELECT
+        SUM(balance)::DECIMAL AS total_balance
+      FROM
+        bank_accounts
+      WHERE
+        user_id = ${user.id.value}
+    `;
+    const [{ totalBalance }] = await this.drizzle.executeToGet<Row>(query, {
+      session,
+    });
+
+    return totalBalance;
   }
 }

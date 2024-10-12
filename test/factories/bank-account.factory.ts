@@ -1,3 +1,4 @@
+import { ArrayWithExactLength } from "@/core/@types/array-with-exact-length";
 import { Factory } from "@/core/factory";
 import {
   BankAccountDataCreateInput,
@@ -41,9 +42,7 @@ export class BankAccountFactory extends Factory<BankAccountFactoryInput> {
     return bankAccount;
   }
 
-  async makeAndSaveMany(
-    overrides: [BankAccountFactoryInput, ...BankAccountFactoryInput[]] = [{}],
-  ) {
+  async makeAndSaveMany(overrides: BankAccountFactoryInput[] = [{}]) {
     const bankAccounts = overrides?.map(this.make);
 
     await this.drizzle?.client
@@ -51,5 +50,15 @@ export class BankAccountFactory extends Factory<BankAccountFactoryInput> {
       .values(bankAccounts.map(bankAccount => bankAccount.entity.getRawData()));
 
     return bankAccounts;
+  }
+
+  async makeAndSaveManyByAmount<Amount extends number>(
+    amount: Amount = 1 as Amount,
+    override: BankAccountFactoryInput = {},
+  ) {
+    return this.makeAndSaveMany([
+      override,
+      ...Array.from({ length: amount - 1 }).map(() => override),
+    ]) as ArrayWithExactLength<Amount, BankAccountFactoryOutput>;
   }
 }
