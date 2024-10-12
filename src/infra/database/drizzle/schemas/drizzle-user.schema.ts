@@ -11,7 +11,7 @@ export const drizzleUserTable = ddl.pgTable("users", {
   email: ddl.varchar("email").notNull().unique(),
   password: ddl.varchar("password").notNull(),
   name: ddl.varchar("name").notNull(),
-  activatedAt: ddl.timestamp("activated_at"),
-  updatedAt: ddl.timestamp("updated_at"),
-  createdAt: ddl.timestamp("created_at").notNull(),
+  activatedAt: ddl.timestamp("activated_at", { withTimezone: true }),
+  updatedAt: ddl.timestamp("updated_at", { withTimezone: true }),
+  createdAt: ddl.timestamp("created_at", { withTimezone: true }).notNull(),
 } satisfies Record<keyof UserData, ddl.PgColumnBuilderBase>);

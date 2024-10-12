@@ -22,6 +22,6 @@ export const drizzleUserPasswordResetTokenTable = ddl.pgTable(
         onDelete: "cascade",
       }),
     token: ddl.text("token").unique().notNull(),
-    expiresAt: ddl.timestamp("expires_at").notNull(),
+    expiresAt: ddl.timestamp("expires_at", { withTimezone: true }).notNull(),
   } satisfies Record<keyof UserPasswordResetTokenData, ddl.PgColumnBuilderBase>,
 );
