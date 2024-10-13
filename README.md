@@ -77,7 +77,7 @@ pnpm install
 ### Rodar os serviços
 
 ```bash
-pnpm services:up
+pnpm services:dev:up
 ```
 
 ### Rodar migrações do banco de dados
