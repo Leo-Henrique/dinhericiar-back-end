@@ -43,6 +43,11 @@ No Dinhericiar, esse é um atual preview da cobertura dos testes de integração
 - [Drizzle ORM](https://orm.drizzle.team/) (finalmente posso escrever SQL puro)
 - [Vitest](https://vitest.dev/)
 
+### Inspirações
+
+- [TabNews](https://github.com/filipedeschamps/tabnews.com.br)
+- [Rocketseat nest-clean](https://github.com/rocketseat-education/05-nest-clean)
+
 ## Rode localmente
 
 ### Dependências globais
