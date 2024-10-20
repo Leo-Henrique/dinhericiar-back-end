@@ -1,4 +1,5 @@
 import { BankAccountRepository } from "@/domain/gateways/repositories/bank-account.repository";
+import { CreditCardRepository } from "@/domain/gateways/repositories/credit-card.repository";
 import { SessionRepository } from "@/domain/gateways/repositories/session.repository";
 import { UserActivationTokenRepository } from "@/domain/gateways/repositories/user-activation-token.repository";
 import { UserPasswordResetTokenRepository } from "@/domain/gateways/repositories/user-password-reset-token.repository";
@@ -7,6 +8,7 @@ import { Module, Provider } from "@nestjs/common";
 import { UnitOfWorkModule } from "../unit-of-work/unit-of-work.module";
 import { DrizzleService } from "./drizzle/drizzle.service";
 import { DrizzleBankAccountRepository } from "./drizzle/repositories/drizzle-bank-account.repository";
+import { DrizzleCreditCardRepository } from "./drizzle/repositories/drizzle-credit-card.repository";
 import { DrizzleSessionRepository } from "./drizzle/repositories/drizzle-session.repository";
 import { DrizzleUserActivationTokenRepository } from "./drizzle/repositories/drizzle-user-activation-token.repository";
 import { DrizzleUserPasswordResetTokenRepository } from "./drizzle/repositories/drizzle-user-password-reset-token.repository";
@@ -32,6 +34,10 @@ const databaseProviders = [
   {
     provide: BankAccountRepository,
     useClass: DrizzleBankAccountRepository,
+  },
+  {
+    provide: CreditCardRepository,
+    useClass: DrizzleCreditCardRepository,
   },
 ] satisfies Provider[];
 

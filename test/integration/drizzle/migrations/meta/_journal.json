@@ -50,6 +50,13 @@
       "when": 1728747059224,
       "tag": "0006_modern_captain_stacy",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1729432047512,
+      "tag": "0007_colossal_longshot",
+      "breakpoints": true
     }
   ]
 }
