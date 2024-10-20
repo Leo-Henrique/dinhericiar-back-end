@@ -26,7 +26,6 @@ export class CreditCardFactory extends Factory<CreditCardFactoryInput> {
       limit: faker.number.float({ fractionDigits: 2 }),
       invoiceClosingDay: faker.number.int({ min: 1, max: 31 }),
       invoiceDueDay: faker.number.int({ min: 1, max: 31 }),
-      isMainCard: faker.datatype.boolean(),
       ...override,
     } satisfies CreditCardDataCreateInput;
     const entity = CreditCardEntity.create(input);

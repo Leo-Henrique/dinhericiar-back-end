@@ -31,7 +31,8 @@ export class DrizzleCreditCardRepository implements CreditCardRepository {
 
     await this.drizzle.client
       .update(drizzleCreditCardTable)
-      .set(updatedCreditCardFields);
+      .set(updatedCreditCardFields)
+      .where(sql`id = ${creditCard.id.value}`);
   }
 
   async deleteUnique(creditCard: CreditCard): Promise<void> {
