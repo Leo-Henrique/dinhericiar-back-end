@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { Name } from "../value-objects/name";
 
 export type BankAccountSchemaToCreate = z.infer<
   typeof BankAccountEntitySchema.toCreate
@@ -12,8 +11,8 @@ export type BankAccountSchemaToUpdate = z.infer<
 export class BankAccountEntitySchema {
   static get toCreate() {
     return z.object({
-      institution: Name.schema,
-      name: z.string().trim().max(255),
+      institution: z.string().trim().min(1).max(255),
+      name: z.string().trim().min(1).max(255),
       balance: z.number().nonnegative(),
       isMainAccount: z.boolean(),
     });
