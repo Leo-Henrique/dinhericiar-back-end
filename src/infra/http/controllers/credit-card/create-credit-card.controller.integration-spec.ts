@@ -158,6 +158,7 @@ describe("[Controller] POST /credit-cards", () => {
   it("should not be able to create a credit card with an name already registered by the same user", async () => {
     const creditCard = await creditCardFactory.makeAndSaveUnique({
       bankAccountId: bankAccount.entity.id.value,
+      name: faker.lorem.sentence().toUpperCase(),
     });
 
     const response = await request(app.getHttpServer())
@@ -166,7 +167,7 @@ describe("[Controller] POST /credit-cards", () => {
       .send({
         ...input,
         bankAccountId: bankAccount.entity.id.value,
-        name: creditCard.entity.name,
+        name: creditCard.entity.name.toLowerCase(),
       } satisfies CreateCreditCardControllerBody);
 
     expect(response.statusCode).toEqual(409);

@@ -61,7 +61,7 @@ export class DrizzleCreditCardRepository implements CreditCardRepository {
       AND
         bank_accounts.user_id = ${user.id.value}
       WHERE
-        credit_cards.name = ${name}
+        LOWER(credit_cards.name) = ${name.toLowerCase()}
       LIMIT 1
     `;
     const [creditCardOnDatabase] =
@@ -139,7 +139,7 @@ export class DrizzleCreditCardRepository implements CreditCardRepository {
       AND
         bank_accounts.user_id = ${user.id.value}
       WHERE
-        credit_cards.slug = ${slug}
+        LOWER(credit_cards.slug) = ${slug.toLowerCase()}
       LIMIT 1
     `;
     const [creditCardOnDatabase] =

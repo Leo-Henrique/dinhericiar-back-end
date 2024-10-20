@@ -101,7 +101,7 @@ export class DrizzleBankAccountRepository implements BankAccountRepository {
       WHERE
         user_id = ${user.id.value}
       AND
-        institution = ${institution}
+        LOWER(institution) = ${institution.toLowerCase()}
       LIMIT 1
     `;
     const [bankAccountOnDatabase] =
@@ -124,7 +124,7 @@ export class DrizzleBankAccountRepository implements BankAccountRepository {
       WHERE
         user_id = ${user.id.value}
       AND
-        name = ${name}
+        LOWER(name) = ${name.toLowerCase()}
       LIMIT 1
     `;
     const [bankAccountOnDatabase] =
@@ -190,7 +190,7 @@ export class DrizzleBankAccountRepository implements BankAccountRepository {
       WHERE
         user_id = ${user.id.value}
       AND
-        slug = ${slug}
+        LOWER(slug) = ${slug.toLowerCase()}
       LIMIT 1
     `;
     const [bankAccountOnDatabase] =

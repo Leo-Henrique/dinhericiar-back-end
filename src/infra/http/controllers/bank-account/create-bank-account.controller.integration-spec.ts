@@ -126,11 +126,12 @@ describe("[Controller] POST /bank-accounts", () => {
   it("should not be able to create a bank account with an name already registered by the same user", async () => {
     const bankAccount = await bankAccountFactory.makeAndSaveUnique({
       userId: user.entity.id.value,
+      name: faker.lorem.sentence().toUpperCase(),
     });
 
     const input = {
       institution: faker.company.name(),
-      name: bankAccount.entity.name.value,
+      name: bankAccount.entity.name.value.toLowerCase(),
       balance: faker.number.float({ fractionDigits: 2 }),
       isMainAccount: false,
     } satisfies CreateBankAccountControllerBody;
@@ -154,9 +155,10 @@ describe("[Controller] POST /bank-accounts", () => {
   it("should not be able to create a bank account with an institution name already registered by the same user", async () => {
     const bankAccount = await bankAccountFactory.makeAndSaveUnique({
       userId: user.entity.id.value,
+      institution: faker.company.name().toUpperCase(),
     });
     const input = {
-      institution: bankAccount.entity.institution.value,
+      institution: bankAccount.entity.institution.value.toLowerCase(),
       name: faker.lorem.sentence(),
       balance: faker.number.float({ fractionDigits: 2 }),
       isMainAccount: false,
