@@ -1,15 +1,15 @@
+import { ArrayWithExactLength } from "@/core/@types/array-with-exact-length";
 import { Factory } from "@/core/factory";
 import {
   CreditCardDataCreateInput,
   CreditCardEntity,
 } from "@/domain/entities/credit-card.entity";
-
 import { DrizzleService } from "@/infra/database/drizzle/drizzle.service";
 import { drizzleCreditCardTable } from "@/infra/database/drizzle/schemas/drizzle-credit-card.schema";
 import { faker } from "@faker-js/faker";
 import { Injectable } from "@nestjs/common";
 
-type CreditCardFactoryInput = Partial<CreditCardDataCreateInput>;
+export type CreditCardFactoryInput = Partial<CreditCardDataCreateInput>;
 
 export type CreditCardFactoryOutput = ReturnType<CreditCardFactory["make"]>;
 
@@ -51,5 +51,14 @@ export class CreditCardFactory extends Factory<CreditCardFactoryInput> {
       .values(creditCards.map(creditCard => creditCard.entity.getRawData()));
 
     return creditCards;
+  }
+
+  async makeAndSaveManyByAmount<Amount extends number>(
+    amount: Amount = 1 as Amount,
+    override: CreditCardFactoryInput = {},
+  ) {
+    return this.makeAndSaveMany(
+      Array.from({ length: amount }).map(() => override),
+    ) as ArrayWithExactLength<Amount, CreditCardFactoryOutput>;
   }
 }
