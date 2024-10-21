@@ -9,7 +9,7 @@ import { drizzleBankAccountTable } from "@/infra/database/drizzle/schemas/drizzl
 import { faker } from "@faker-js/faker";
 import { Injectable } from "@nestjs/common";
 
-type BankAccountFactoryInput = Partial<BankAccountDataCreateInput>;
+export type BankAccountFactoryInput = Partial<BankAccountDataCreateInput>;
 
 export type BankAccountFactoryOutput = ReturnType<BankAccountFactory["make"]>;
 

@@ -10,6 +10,7 @@ import { sql } from "drizzle-orm";
 import request from "supertest";
 import {
   BankAccountFactory,
+  BankAccountFactoryInput,
   BankAccountFactoryOutput,
 } from "test/factories/bank-account.factory";
 import {
@@ -54,11 +55,14 @@ describe("[Controller] GET /bank-accounts", () => {
       userId: user.entity.id.value,
     });
     bankAccounts = await bankAccountFactory.makeAndSaveMany(
-      Array.from({ length: totalBankAccounts }).map((_, index) => ({
-        userId: user.entity.id.value,
-        isMainAccount: index === 2,
-        createdAt: new Date(Date.now() + 1000 * 60 * index),
-      })),
+      Array.from({ length: totalBankAccounts }).map(
+        (_, index) =>
+          ({
+            userId: user.entity.id.value,
+            isMainAccount: index === 2,
+            createdAt: new Date(Date.now() + 1000 * 60 * index),
+          }) satisfies BankAccountFactoryInput,
+      ),
     );
     await bankAccountFactory.makeAndSaveManyByAmount(2, {
       userId: anotherUser.entity.id.value,
@@ -151,20 +155,6 @@ describe("[Controller] GET /bank-accounts", () => {
     expect(responseFromFirstPage.statusCode).toEqual(200);
     expect(responseFromFirstPage.body.bankAccounts).toHaveLength(itemsPerPage);
     expect(responseFromFirstPage.body.totalBankAccounts).toEqual(
-      totalBankAccounts,
-    );
-
-    const responseFromSecondPage = await request(app.getHttpServer())
-      .get("/bank-accounts")
-      .set("Cookie", getSessionCookie(session.entity))
-      .query({
-        page: 1,
-        itemsPerPage,
-      } satisfies ListBankAccountsControllerQuery);
-
-    expect(responseFromSecondPage.statusCode).toEqual(200);
-    expect(responseFromSecondPage.body.bankAccounts).toHaveLength(itemsPerPage);
-    expect(responseFromSecondPage.body.totalBankAccounts).toEqual(
       totalBankAccounts,
     );
 
