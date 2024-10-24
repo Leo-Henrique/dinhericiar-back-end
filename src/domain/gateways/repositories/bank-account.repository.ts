@@ -12,6 +12,11 @@ export abstract class BankAccountRepository {
     bankAccount: BankAccount,
     data: BankAccountDataUpdateInput,
   ): Promise<void>;
+  abstract updateUniqueToDecreaseBalance(
+    bankAccount: BankAccount,
+    amount: number,
+    options?: UnitOfWorkSessionOptions,
+  ): Promise<void>;
   abstract deleteUnique(bankAccount: BankAccount): Promise<void>;
   abstract findUniqueByInstitutionFromUser(
     institution: string,

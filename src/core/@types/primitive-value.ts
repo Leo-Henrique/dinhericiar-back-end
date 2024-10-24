@@ -1,1 +1,3 @@
-export type PrimitiveValue = string | number | bigint | boolean | Date | null;
+type Values = string | number | bigint | boolean | Date | null;
+
+export type PrimitiveValue = Values | Values[];

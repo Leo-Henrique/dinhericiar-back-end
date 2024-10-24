@@ -1,4 +1,3 @@
-import { Mapper } from "@/core/mapper";
 import { PaginationParams } from "@/core/schemas/pagination-params";
 import {
   BankAccount,
@@ -10,7 +9,10 @@ import { BankAccountRepository } from "@/domain/gateways/repositories/bank-accou
 import { Injectable } from "@nestjs/common";
 import { sql } from "drizzle-orm";
 import { DrizzleService, DrizzleSession } from "../drizzle.service";
-import { DrizzleBankAccountData } from "../schemas/drizzle-bank-account.schema";
+import {
+  DrizzleBankAccountData,
+  drizzleBankAccountTable,
+} from "../schemas/drizzle-bank-account.schema";
 
 @Injectable()
 export class DrizzleBankAccountRepository implements BankAccountRepository {
@@ -50,32 +52,26 @@ export class DrizzleBankAccountRepository implements BankAccountRepository {
   async updateUnique(
     bankAccount: BankAccount,
     data: BankAccountDataUpdateInput,
+    { session }: { session: DrizzleSession } = { session: this.drizzle.client },
   ): Promise<void> {
     const updatedBankAccountFields = bankAccount.update(data);
-    const updatedBankAccountFieldNames = Object.keys(
-      updatedBankAccountFields,
-    ) as (keyof typeof updatedBankAccountFields)[];
 
-    const query = sql`      
-      UPDATE
-        bank_accounts
-      SET
-    `;
+    await session
+      .update(drizzleBankAccountTable)
+      .set(updatedBankAccountFields)
+      .where(sql`id = ${bankAccount.id.value}`);
+  }
 
-    for (let i = 0; i < updatedBankAccountFieldNames.length; i++) {
-      const fieldName = updatedBankAccountFieldNames[i];
-      const value = updatedBankAccountFields[fieldName];
-
-      query.append(sql`
-        ${sql.identifier(Mapper.toSnakeCase(fieldName))} = ${value}
-      `);
-
-      if (i < updatedBankAccountFieldNames.length - 1) query.append(sql`,`);
-    }
-
-    query.append(sql` WHERE id = ${bankAccount.id.value}`);
-
-    await this.drizzle.client.execute(query);
+  async updateUniqueToDecreaseBalance(
+    bankAccount: BankAccount,
+    amount: number,
+    { session }: { session: DrizzleSession } = { session: this.drizzle.client },
+  ): Promise<void> {
+    await this.updateUnique(
+      bankAccount,
+      { balance: bankAccount.balance - amount },
+      { session },
+    );
   }
 
   async deleteUnique(bankAccount: BankAccount): Promise<void> {
