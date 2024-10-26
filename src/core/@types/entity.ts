@@ -3,6 +3,11 @@ import { Entity } from "../entities/entity";
 import { ValueObject } from "../entities/value-object";
 import { PrimitiveValue } from "./primitive-value";
 
+type TryToExtractPrimitiveValueFromValueObject<Value> =
+  Extract<Value, ValueObject> extends never
+    ? Value
+    : Extract<Value, ValueObject>["value"] | Exclude<Value, ValueObject>;
+
 export type EntityData = Record<string, PrimitiveValue | ValueObject>;
 
 export type EntityDataCreate<Data extends EntityData = Record<string, never>> =
@@ -14,7 +19,7 @@ export type EntityDataUpdate<Data extends EntityData = Record<string, never>> =
   | Record<string, PrimitiveValue>;
 
 export type EntityDataRaw<Data extends EntityData> = {
-  [K in keyof Data]: Data[K] extends ValueObject ? Data[K]["value"] : Data[K];
+  [K in keyof Data]: TryToExtractPrimitiveValueFromValueObject<Data[K]>;
 };
 
 export type EntityDataCreateInput<
@@ -24,9 +29,7 @@ export type EntityDataCreateInput<
 > = Merge<
   Merge<
     Partial<{
-      [K in keyof Data]: Data[K] extends ValueObject
-        ? Data[K]["value"]
-        : Data[K];
+      [K in keyof Data]: TryToExtractPrimitiveValueFromValueObject<Data[K]>;
     }>,
     TypeFromZodSchema
   >,
@@ -46,9 +49,7 @@ export type EntityDataUpdateInput<
   Merge<
     Omit<
       Partial<{
-        [K in keyof Data]: Data[K] extends ValueObject
-          ? Data[K]["value"]
-          : Data[K];
+        [K in keyof Data]: TryToExtractPrimitiveValueFromValueObject<Data[K]>;
       }>,
       EntityDataUpdateInputOmittedFieldsDefault
     >,
@@ -59,9 +60,7 @@ export type EntityDataUpdateInput<
 
 export type EntityDataUpdateOutput<Data extends EntityData> = Merge<
   {
-    [K in keyof Data]?: Data[K] extends ValueObject
-      ? Data[K]["value"]
-      : Data[K];
+    [K in keyof Data]?: TryToExtractPrimitiveValueFromValueObject<Data[K]>;
   },
   Required<{
     [K in keyof Data as K extends "updatedAt" ? K : never]: Date;
