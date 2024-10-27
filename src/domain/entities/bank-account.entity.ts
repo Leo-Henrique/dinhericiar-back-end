@@ -66,6 +66,7 @@ export class BankAccountEntity extends Entity<BankAccountData> {
       institution: input.institution ? new Name(input.institution) : undefined,
       name: input.name ? new Name(input.name) : undefined,
       slug: input.name ? Slug.createFromText(input.name) : undefined,
+      balance: input.balance ? +input.balance.toFixed(2) : undefined,
     });
   }
 }

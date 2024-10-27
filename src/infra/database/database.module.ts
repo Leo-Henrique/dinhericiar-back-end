@@ -1,6 +1,8 @@
 import { BankAccountRepository } from "@/domain/gateways/repositories/bank-account.repository";
 import { CreditCardRepository } from "@/domain/gateways/repositories/credit-card.repository";
+import { TransactionDebitExpenseRepository } from "@/domain/gateways/repositories/debit-expense-transaction.repository";
 import { SessionRepository } from "@/domain/gateways/repositories/session.repository";
+import { TransactionCategoryRepository } from "@/domain/gateways/repositories/transaction-category.repository";
 import { UserActivationTokenRepository } from "@/domain/gateways/repositories/user-activation-token.repository";
 import { UserPasswordResetTokenRepository } from "@/domain/gateways/repositories/user-password-reset-token.repository";
 import { UserRepository } from "@/domain/gateways/repositories/user.repository";
@@ -10,6 +12,8 @@ import { DrizzleService } from "./drizzle/drizzle.service";
 import { DrizzleBankAccountRepository } from "./drizzle/repositories/drizzle-bank-account.repository";
 import { DrizzleCreditCardRepository } from "./drizzle/repositories/drizzle-credit-card.repository";
 import { DrizzleSessionRepository } from "./drizzle/repositories/drizzle-session.repository";
+import { DrizzleTransactionCategoryRepository } from "./drizzle/repositories/drizzle-transaction-category.repository";
+import { DrizzleTransactionDebitExpenseRepository } from "./drizzle/repositories/drizzle-transaction-debit-expense.repository";
 import { DrizzleUserActivationTokenRepository } from "./drizzle/repositories/drizzle-user-activation-token.repository";
 import { DrizzleUserPasswordResetTokenRepository } from "./drizzle/repositories/drizzle-user-password-reset-token.repository";
 import { DrizzleUserRepository } from "./drizzle/repositories/drizzle-user.repository";
@@ -38,6 +42,14 @@ const databaseProviders = [
   {
     provide: CreditCardRepository,
     useClass: DrizzleCreditCardRepository,
+  },
+  {
+    provide: TransactionCategoryRepository,
+    useClass: DrizzleTransactionCategoryRepository,
+  },
+  {
+    provide: TransactionDebitExpenseRepository,
+    useClass: DrizzleTransactionDebitExpenseRepository,
   },
 ] satisfies Provider[];
 
