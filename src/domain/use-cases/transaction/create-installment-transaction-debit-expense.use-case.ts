@@ -97,26 +97,16 @@ export class CreateInstallmentTransactionDebitExpenseUseCase extends UseCase<
 
     const transactionDebitExpenses: TransactionDebitExpense[] = [];
 
-    for (let index = 0; index < installmentNumber; index++) {
-      const installmentTransactedAt = new Date(transactedAt.getTime());
-
-      if (installmentPeriod === "YEAR") {
-        installmentTransactedAt.setFullYear(
-          installmentTransactedAt.getFullYear() + index,
+    for (
+      let currentInstallment = 1;
+      currentInstallment <= installmentNumber;
+      currentInstallment++
+    ) {
+      const installmentTransactedAt =
+        transactionRecurrenceInstallment.getTransactionDateFromInstallment(
+          transactedAt,
+          currentInstallment,
         );
-      }
-
-      if (installmentPeriod === "MONTH") {
-        installmentTransactedAt.setMonth(
-          installmentTransactedAt.getMonth() + index,
-        );
-      }
-
-      if (installmentPeriod === "WEEK") {
-        installmentTransactedAt.setDate(
-          installmentTransactedAt.getDate() + 7 * index,
-        );
-      }
 
       const transactionDebitExpense = TransactionDebitExpenseEntity.create({
         ...restInput,
@@ -124,7 +114,7 @@ export class CreateInstallmentTransactionDebitExpenseUseCase extends UseCase<
         transactionCategoryId: transactionCategory.id.value,
         transactionRecurrenceId: transactionRecurrenceInstallment.id.value,
         transactedAt: installmentTransactedAt,
-        isAccomplished: index === 0 ? isAccomplished : false,
+        isAccomplished: currentInstallment === 1 ? isAccomplished : false,
         amount,
       });
 

@@ -29,4 +29,26 @@ export class TransactionRecurrenceInstallmentEntity extends Entity<TransactionRe
       id: new UniqueEntityId(input.id),
     });
   }
+
+  public getTransactionDateFromInstallment(
+    firstTransactionDate: Date,
+    currentInstallment: number,
+  ) {
+    const date = new Date(firstTransactionDate.getTime());
+    const installmentIndex = currentInstallment - 1;
+
+    if (this.data.period === "YEAR") {
+      date.setFullYear(firstTransactionDate.getFullYear() + installmentIndex);
+    }
+
+    if (this.data.period === "MONTH") {
+      date.setMonth(firstTransactionDate.getMonth() + installmentIndex);
+    }
+
+    if (this.data.period === "WEEK") {
+      date.setDate(firstTransactionDate.getDate() + 7 * installmentIndex);
+    }
+
+    return date;
+  }
 }
