@@ -126,80 +126,19 @@ describe("[Controller] POST /transactions/expenses", () => {
           installmentNumber: 2,
         },
       },
+      {
+        queryInput: { recurrence: "FIXED" },
+        overrideBodyInput: {
+          fixedPeriod: "MONTH",
+          fixedInterval: 1,
+          fixedOccurrences: null,
+        },
+      },
     ];
 
-    it.each(casesForEachRecurrence)(
-      "decrease bank account balance if it has been marked as accomplished (recurrence: $queryInput.recurrence)",
-      async ({ queryInput, overrideBodyInput }) => {
-        const response = await request(app.getHttpServer())
-          .post("/transactions/expenses")
-          .set("Cookie", getSessionCookie(session.entity))
-          .query(queryInput)
-          .send({
-            ...uniqueTransactionInput,
-            ...overrideBodyInput,
-            bankAccountId: bankAccount.entity.id.value,
-            isAccomplished: true,
-          } satisfies TransactionDebitExpenseSchemaToCreateUnique);
-
-        expect(response.statusCode).toEqual(201);
-
-        const [bankAccountOnDatabase] =
-          await drizzle.executeToGet<DrizzleBankAccountData>(sql`
-            SELECT
-              *
-            FROM 
-              bank_accounts
-            WHERE
-              id = ${bankAccount.entity.id.value}
-      `);
-
-        const { balance: decreasedBalance } = bankAccount.entity.update({
-          balance: bankAccount.entity.balance - uniqueTransactionInput.amount,
-        });
-
-        expect(bankAccountOnDatabase.balance).toEqual(decreasedBalance);
-      },
-    );
-
-    it.each(casesForEachRecurrence)(
-      "should not be able to create a transaction with a non-existing bank account from user (recurrence: $queryInput.recurrence)",
-      async ({ queryInput, overrideBodyInput }) => {
-        const response = await request(app.getHttpServer())
-          .post("/transactions/expenses")
-          .set("Cookie", getSessionCookie(session.entity))
-          .query(queryInput)
-          .send({
-            ...uniqueTransactionInput,
-            ...overrideBodyInput,
-            bankAccountId: faker.string.uuid(),
-          } satisfies TransactionDebitExpenseSchemaToCreateUnique);
-
-        expect(response.statusCode).toEqual(400);
-        expect(response.body.error).toEqual("ResourceNotFoundError");
-
-        const bankAccountFromAnotherUserResponse = await request(
-          app.getHttpServer(),
-        )
-          .post("/transactions/expenses")
-          .set("Cookie", getSessionCookie(session.entity))
-          .query(queryInput)
-          .send({
-            ...uniqueTransactionInput,
-            ...overrideBodyInput,
-            bankAccountId: bankAccountFromAnotherUser.entity.id.value,
-          } satisfies TransactionDebitExpenseSchemaToCreateUnique);
-
-        expect(bankAccountFromAnotherUserResponse.statusCode).toEqual(400);
-        expect(bankAccountFromAnotherUserResponse.body.error).toEqual(
-          "ResourceNotFoundError",
-        );
-      },
-    );
-
-    describe("transaction category", () => {
+    describe("decrease bank account balance if it has been marked as accomplished", () => {
       it.each(casesForEachRecurrence)(
-        "should be able to associate existing transaction category to transaction (recurrence: $queryInput.recurrence)",
+        "with $queryInput.recurrence recurrence",
         async ({ queryInput, overrideBodyInput }) => {
           const response = await request(app.getHttpServer())
             .post("/transactions/expenses")
@@ -209,65 +148,48 @@ describe("[Controller] POST /transactions/expenses", () => {
               ...uniqueTransactionInput,
               ...overrideBodyInput,
               bankAccountId: bankAccount.entity.id.value,
-              categoryName: transactionCategory.entity.name,
+              isAccomplished: true,
             } satisfies TransactionDebitExpenseSchemaToCreateUnique);
 
           expect(response.statusCode).toEqual(201);
 
-          const transactionOnDatabase =
-            await transactionDebitExpenseFactory.getLastCreatedWithCategory();
-
-          expect(transactionOnDatabase).toMatchObject({
-            transactionCategoryId: transactionCategory.entity.id.value,
-            categoryName: transactionCategory.entity.name,
-            transactionType: "EXPENSE",
-          });
-        },
-      );
-
-      it.each(casesForEachRecurrence)(
-        "should be able to create a transaction category if it does not exist for the user (recurrence: $queryInput.recurrence)",
-        async ({ queryInput, overrideBodyInput }) => {
-          const nonExistingTransactionCategoryName = faker.lorem.sentence();
-          const response = await request(app.getHttpServer())
-            .post("/transactions/expenses")
-            .set("Cookie", getSessionCookie(session.entity))
-            .query(queryInput)
-            .send({
-              ...uniqueTransactionInput,
-              ...overrideBodyInput,
-              bankAccountId: bankAccount.entity.id.value,
-              categoryName: nonExistingTransactionCategoryName,
-            } satisfies TransactionDebitExpenseSchemaToCreateUnique);
-
-          expect(response.statusCode).toEqual(201);
-
-          const [transactionCategoryOnDatabase] =
-            await drizzle.executeToGet<DrizzleTransactionCategoryData>(sql`
-            SELECT
-              *
-            FROM 
-              transaction_categories
-            WHERE
-              user_id = ${user.entity.id.value}
-            AND
-              transaction_type = 'EXPENSE'
-            AND
-              name = ${nonExistingTransactionCategoryName}
+          const [bankAccountOnDatabase] =
+            await drizzle.executeToGet<DrizzleBankAccountData>(sql`
+              SELECT
+                *
+              FROM 
+                bank_accounts
+              WHERE
+                id = ${bankAccount.entity.id.value}
         `);
 
-          expect(transactionCategoryOnDatabase).toBeTruthy();
-
-          const transactionOnDatabase =
-            await transactionDebitExpenseFactory.getLastCreatedWithCategory();
-
-          expect(transactionOnDatabase).toMatchObject({
-            transactionCategoryId: transactionCategoryOnDatabase.id,
-            categoryName: transactionCategoryOnDatabase.name,
-            transactionType: "EXPENSE",
+          const { balance: decreasedBalance } = bankAccount.entity.update({
+            balance: bankAccount.entity.balance - uniqueTransactionInput.amount,
           });
 
-          const transactionCategoryFromAnotherUserResponse = await request(
+          expect(bankAccountOnDatabase.balance).toEqual(decreasedBalance);
+        },
+      );
+    });
+
+    describe("should not be able to create a transaction with a non-existing bank account from user", () => {
+      it.each(casesForEachRecurrence)(
+        "with $queryInput.recurrence recurrence",
+        async ({ queryInput, overrideBodyInput }) => {
+          const response = await request(app.getHttpServer())
+            .post("/transactions/expenses")
+            .set("Cookie", getSessionCookie(session.entity))
+            .query(queryInput)
+            .send({
+              ...uniqueTransactionInput,
+              ...overrideBodyInput,
+              bankAccountId: faker.string.uuid(),
+            } satisfies TransactionDebitExpenseSchemaToCreateUnique);
+
+          expect(response.statusCode).toEqual(400);
+          expect(response.body.error).toEqual("ResourceNotFoundError");
+
+          const bankAccountFromAnotherUserResponse = await request(
             app.getHttpServer(),
           )
             .post("/transactions/expenses")
@@ -276,63 +198,159 @@ describe("[Controller] POST /transactions/expenses", () => {
             .send({
               ...uniqueTransactionInput,
               ...overrideBodyInput,
-              bankAccountId: bankAccount.entity.id.value,
-              categoryName: transactionCategoryFromAnotherUser.entity.name,
+              bankAccountId: bankAccountFromAnotherUser.entity.id.value,
             } satisfies TransactionDebitExpenseSchemaToCreateUnique);
 
-          expect(transactionCategoryFromAnotherUserResponse.statusCode).toEqual(
-            201,
+          expect(bankAccountFromAnotherUserResponse.statusCode).toEqual(400);
+          expect(bankAccountFromAnotherUserResponse.body.error).toEqual(
+            "ResourceNotFoundError",
           );
-
-          const transactionWithCategoryWithSameNameFromAnotherUserOnDatabase =
-            await transactionDebitExpenseFactory.getLastCreatedWithCategory();
-
-          expect(
-            transactionWithCategoryWithSameNameFromAnotherUserOnDatabase.transactionCategoryId,
-          ).not.toEqual(transactionCategoryFromAnotherUser.entity.id.value);
-          expect(
-            transactionWithCategoryWithSameNameFromAnotherUserOnDatabase,
-          ).toMatchObject({
-            categoryName: transactionCategoryFromAnotherUser.entity.name,
-            transactionType: "EXPENSE",
-          });
         },
       );
+    });
 
-      it.each(casesForEachRecurrence)(
-        "should not be able to associate existing transaction category if it is not expense (recurrence: $queryInput.recurrence)",
-        async ({ queryInput, overrideBodyInput }) => {
-          const earningTransactionCategory =
-            await transactionCategoryFactory.makeAndSaveUnique({
-              userId: user.entity.id.value,
-              transactionType: "EARNING",
+    describe("transaction category", () => {
+      describe("should be able to associate existing transaction category to transaction", () => {
+        it.each(casesForEachRecurrence)(
+          "with $queryInput.recurrence recurrence",
+          async ({ queryInput, overrideBodyInput }) => {
+            const response = await request(app.getHttpServer())
+              .post("/transactions/expenses")
+              .set("Cookie", getSessionCookie(session.entity))
+              .query(queryInput)
+              .send({
+                ...uniqueTransactionInput,
+                ...overrideBodyInput,
+                bankAccountId: bankAccount.entity.id.value,
+                categoryName: transactionCategory.entity.name,
+              } satisfies TransactionDebitExpenseSchemaToCreateUnique);
+
+            expect(response.statusCode).toEqual(201);
+
+            const transactionOnDatabase =
+              await transactionDebitExpenseFactory.getLastCreatedWithCategory();
+
+            expect(transactionOnDatabase).toMatchObject({
+              transactionCategoryId: transactionCategory.entity.id.value,
+              categoryName: transactionCategory.entity.name,
+              transactionType: "EXPENSE",
+            });
+          },
+        );
+      });
+
+      describe("should be able to create a transaction category if it does not exist for the user", () => {
+        it.each(casesForEachRecurrence)(
+          "with $queryInput.recurrence",
+          async ({ queryInput, overrideBodyInput }) => {
+            const nonExistingTransactionCategoryName = faker.lorem.sentence();
+            const response = await request(app.getHttpServer())
+              .post("/transactions/expenses")
+              .set("Cookie", getSessionCookie(session.entity))
+              .query(queryInput)
+              .send({
+                ...uniqueTransactionInput,
+                ...overrideBodyInput,
+                bankAccountId: bankAccount.entity.id.value,
+                categoryName: nonExistingTransactionCategoryName,
+              } satisfies TransactionDebitExpenseSchemaToCreateUnique);
+
+            expect(response.statusCode).toEqual(201);
+
+            const [transactionCategoryOnDatabase] =
+              await drizzle.executeToGet<DrizzleTransactionCategoryData>(sql`
+              SELECT
+                *
+              FROM 
+                transaction_categories
+              WHERE
+                user_id = ${user.entity.id.value}
+              AND
+                transaction_type = 'EXPENSE'
+              AND
+                name = ${nonExistingTransactionCategoryName}
+          `);
+
+            expect(transactionCategoryOnDatabase).toBeTruthy();
+
+            const transactionOnDatabase =
+              await transactionDebitExpenseFactory.getLastCreatedWithCategory();
+
+            expect(transactionOnDatabase).toMatchObject({
+              transactionCategoryId: transactionCategoryOnDatabase.id,
+              categoryName: transactionCategoryOnDatabase.name,
+              transactionType: "EXPENSE",
             });
 
-          const response = await request(app.getHttpServer())
-            .post("/transactions/expenses")
-            .set("Cookie", getSessionCookie(session.entity))
-            .query(queryInput)
-            .send({
-              ...uniqueTransactionInput,
-              ...overrideBodyInput,
-              bankAccountId: bankAccount.entity.id.value,
+            const transactionCategoryFromAnotherUserResponse = await request(
+              app.getHttpServer(),
+            )
+              .post("/transactions/expenses")
+              .set("Cookie", getSessionCookie(session.entity))
+              .query(queryInput)
+              .send({
+                ...uniqueTransactionInput,
+                ...overrideBodyInput,
+                bankAccountId: bankAccount.entity.id.value,
+                categoryName: transactionCategoryFromAnotherUser.entity.name,
+              } satisfies TransactionDebitExpenseSchemaToCreateUnique);
+
+            expect(
+              transactionCategoryFromAnotherUserResponse.statusCode,
+            ).toEqual(201);
+
+            const transactionWithCategoryWithSameNameFromAnotherUserOnDatabase =
+              await transactionDebitExpenseFactory.getLastCreatedWithCategory();
+
+            expect(
+              transactionWithCategoryWithSameNameFromAnotherUserOnDatabase.transactionCategoryId,
+            ).not.toEqual(transactionCategoryFromAnotherUser.entity.id.value);
+            expect(
+              transactionWithCategoryWithSameNameFromAnotherUserOnDatabase,
+            ).toMatchObject({
+              categoryName: transactionCategoryFromAnotherUser.entity.name,
+              transactionType: "EXPENSE",
+            });
+          },
+        );
+      });
+
+      describe("should not be able to associate existing transaction category if it is not expense", () => {
+        it.each(casesForEachRecurrence)(
+          "with $queryInput.recurrence recurrence",
+          async ({ queryInput, overrideBodyInput }) => {
+            const earningTransactionCategory =
+              await transactionCategoryFactory.makeAndSaveUnique({
+                userId: user.entity.id.value,
+                transactionType: "EARNING",
+              });
+
+            const response = await request(app.getHttpServer())
+              .post("/transactions/expenses")
+              .set("Cookie", getSessionCookie(session.entity))
+              .query(queryInput)
+              .send({
+                ...uniqueTransactionInput,
+                ...overrideBodyInput,
+                bankAccountId: bankAccount.entity.id.value,
+                categoryName: earningTransactionCategory.entity.name,
+              } satisfies TransactionDebitExpenseSchemaToCreateUnique);
+
+            expect(response.statusCode).toEqual(201);
+
+            const transactionOnDatabase =
+              await transactionDebitExpenseFactory.getLastCreatedWithCategory();
+
+            expect(transactionOnDatabase.transactionCategoryId).not.toEqual(
+              earningTransactionCategory.entity.id.value,
+            );
+            expect(transactionOnDatabase).toMatchObject({
               categoryName: earningTransactionCategory.entity.name,
-            } satisfies TransactionDebitExpenseSchemaToCreateUnique);
-
-          expect(response.statusCode).toEqual(201);
-
-          const transactionOnDatabase =
-            await transactionDebitExpenseFactory.getLastCreatedWithCategory();
-
-          expect(transactionOnDatabase.transactionCategoryId).not.toEqual(
-            earningTransactionCategory.entity.id.value,
-          );
-          expect(transactionOnDatabase).toMatchObject({
-            categoryName: earningTransactionCategory.entity.name,
-            transactionType: "EXPENSE",
-          });
-        },
-      );
+              transactionType: "EXPENSE",
+            });
+          },
+        );
+      });
     });
   });
 
@@ -418,153 +436,174 @@ describe("[Controller] POST /transactions/expenses", () => {
       `);
     });
 
-    const casesForEachPeriod = [
-      {
-        period: "YEAR" as const,
-        getExpectedTransactedDateFromEachTransaction: (
-          inputTransactedDate: Date,
-          index: number,
-        ) => {
-          const expectedDate = new Date(inputTransactedDate.getTime());
+    describe("should be able to create a installment debit expense transaction", () => {
+      it.each([
+        {
+          period: "YEAR" as const,
+          getExpectedTransactedDateFromEachTransaction: (
+            inputTransactedDate: Date,
+            index: number,
+          ) => {
+            const expectedDate = new Date(inputTransactedDate.getTime());
 
-          expectedDate.setFullYear(inputTransactedDate.getFullYear() + index);
+            expectedDate.setFullYear(inputTransactedDate.getFullYear() + index);
 
-          return expectedDate.getTime();
+            return expectedDate.getTime();
+          },
         },
-      },
-      {
-        period: "MONTH" as const,
-        getExpectedTransactedDateFromEachTransaction: (
-          inputTransactedDate: Date,
-          index: number,
-        ) => {
-          const expectedDate = new Date(inputTransactedDate.getTime());
+        {
+          period: "MONTH" as const,
+          getExpectedTransactedDateFromEachTransaction: (
+            inputTransactedDate: Date,
+            index: number,
+          ) => {
+            const expectedDate = new Date(inputTransactedDate.getTime());
 
-          expectedDate.setMonth(inputTransactedDate.getMonth() + index);
+            expectedDate.setMonth(inputTransactedDate.getMonth() + index);
 
-          return expectedDate.getTime();
+            return expectedDate.getTime();
+          },
         },
-      },
-      {
-        period: "WEEK" as const,
-        getExpectedTransactedDateFromEachTransaction: (
-          inputTransactedDate: Date,
-          index: number,
-        ) => {
-          const expectedDate = new Date(inputTransactedDate.getTime());
+        {
+          period: "WEEK" as const,
+          getExpectedTransactedDateFromEachTransaction: (
+            inputTransactedDate: Date,
+            index: number,
+          ) => {
+            const expectedDate = new Date(inputTransactedDate.getTime());
 
-          expectedDate.setDate(inputTransactedDate.getDate() + 7 * index);
+            expectedDate.setDate(inputTransactedDate.getDate() + 7 * index);
 
-          return expectedDate.getTime();
+            return expectedDate.getTime();
+          },
         },
-      },
-    ];
+      ])(
+        "with $period period",
+        async ({ period, getExpectedTransactedDateFromEachTransaction }) => {
+          const input = {
+            ...uniqueTransactionInput,
+            bankAccountId: bankAccount.entity.id.value,
+            installmentPeriod: period,
+            installmentNumber: 10,
+          } satisfies TransactionDebitExpenseSchemaToCreateInstallment;
 
-    it.each(casesForEachPeriod)(
-      "should be able to create a installment debit expense transaction (period: $period)",
-      async ({ period, getExpectedTransactedDateFromEachTransaction }) => {
-        const input = {
-          ...uniqueTransactionInput,
-          bankAccountId: bankAccount.entity.id.value,
-          installmentPeriod: period,
-          installmentNumber: 10,
-        } satisfies TransactionDebitExpenseSchemaToCreateInstallment;
+          const response = await request(app.getHttpServer())
+            .post("/transactions/expenses")
+            .set("Cookie", getSessionCookie(session.entity))
+            .query(installmentTransactionQueryInput)
+            .send(input);
 
-        const response = await request(app.getHttpServer())
-          .post("/transactions/expenses")
-          .set("Cookie", getSessionCookie(session.entity))
-          .query(installmentTransactionQueryInput)
-          .send(input);
+          expect(response.statusCode).toEqual(201);
 
-        expect(response.statusCode).toEqual(201);
+          const transactionRecurrencesOnDatabase =
+            await drizzle.executeToGet<DrizzleTransactionRecurrenceData>(sql`
+              SELECT
+                *
+              FROM
+                transaction_recurrences
+              WHERE
+                period = ${period}
+          `);
 
-        const transactionRecurrencesOnDatabase =
-          await drizzle.executeToGet<DrizzleTransactionRecurrenceData>(sql`
+          expect(transactionRecurrencesOnDatabase).toHaveLength(1);
+
+          const [transactionRecurrenceOnDatabase] =
+            transactionRecurrencesOnDatabase;
+
+          expect(transactionRecurrenceOnDatabase).toStrictEqual({
+            id: expect.any(String),
+            period: input.installmentPeriod,
+            installments: input.installmentNumber,
+            interval: null,
+            occurrences: null,
+            type: "INSTALLMENT",
+          });
+
+          const transactionDebitExpensesOnDatabase = await drizzle.executeToGet<
+            DrizzleTransactionData & DrizzleTransactionDebitExpenseData
+          >(sql`
             SELECT
               *
             FROM
-              transaction_recurrences
+              transactions
+            INNER JOIN
+              transaction_debit_expenses 
+            ON 
+              transaction_debit_expenses.transaction_id = transactions.id
             WHERE
-              period = ${period}
+              transactions.transaction_recurrence_id = ${transactionRecurrenceOnDatabase.id}
         `);
 
-        expect(transactionRecurrencesOnDatabase).toHaveLength(1);
-
-        const [transactionRecurrenceOnDatabase] =
-          transactionRecurrencesOnDatabase;
-
-        expect(transactionRecurrenceOnDatabase).toStrictEqual({
-          id: expect.any(String),
-          period: input.installmentPeriod,
-          installments: input.installmentNumber,
-          interval: null,
-          occurrences: null,
-          type: "INSTALLMENT",
-        });
-
-        const transactionDebitExpensesOnDatabase = await drizzle.executeToGet<
-          DrizzleTransactionData & DrizzleTransactionDebitExpenseData
-        >(sql`
-          SELECT
-            *
-          FROM
-            transactions
-          INNER JOIN
-            transaction_debit_expenses 
-          ON 
-            transaction_debit_expenses.transaction_id = transactions.id
-          WHERE
-            transactions.transaction_recurrence_id = ${transactionRecurrenceOnDatabase.id}
-      `);
-
-        expect(transactionDebitExpensesOnDatabase).toHaveLength(
-          input.installmentNumber,
-        );
-
-        const {
-          categoryName, // eslint-disable-line @typescript-eslint/no-unused-vars
-          isAccomplished, // eslint-disable-line @typescript-eslint/no-unused-vars
-          installmentNumber, // eslint-disable-line @typescript-eslint/no-unused-vars
-          installmentPeriod, // eslint-disable-line @typescript-eslint/no-unused-vars
-          transactedAt, // eslint-disable-line @typescript-eslint/no-unused-vars
-          ...inputCorrespondingToDatabaseData
-        } = input;
-
-        for (
-          let index = 0;
-          index < transactionDebitExpensesOnDatabase.length;
-          index++
-        ) {
-          const transactionDebitExpenseOnDatabase =
-            transactionDebitExpensesOnDatabase[index];
-
-          expect(transactionDebitExpenseOnDatabase).toBeTruthy();
-          expect(transactionDebitExpenseOnDatabase).toMatchObject(
-            inputCorrespondingToDatabaseData,
+          expect(transactionDebitExpensesOnDatabase).toHaveLength(
+            input.installmentNumber,
           );
-          expect(transactionDebitExpenseOnDatabase.type).toEqual(
-            "DEBIT_EXPENSE",
-          );
-          expect(transactionDebitExpenseOnDatabase.accomplishedAt).toBeNull();
-          expect(
-            transactionDebitExpenseOnDatabase.transactionRecurrenceId,
-          ).toEqual(transactionRecurrenceOnDatabase.id);
 
-          const expectedTransactedDate =
-            getExpectedTransactedDateFromEachTransaction(
-              input.transactedAt,
-              index,
+          const {
+            categoryName, // eslint-disable-line @typescript-eslint/no-unused-vars
+            isAccomplished, // eslint-disable-line @typescript-eslint/no-unused-vars
+            installmentNumber, // eslint-disable-line @typescript-eslint/no-unused-vars
+            installmentPeriod, // eslint-disable-line @typescript-eslint/no-unused-vars
+            transactedAt, // eslint-disable-line @typescript-eslint/no-unused-vars
+            ...inputCorrespondingToDatabaseData
+          } = input;
+
+          for (
+            let index = 0;
+            index < transactionDebitExpensesOnDatabase.length;
+            index++
+          ) {
+            const transactionDebitExpenseOnDatabase =
+              transactionDebitExpensesOnDatabase[index];
+
+            expect(transactionDebitExpenseOnDatabase).toBeTruthy();
+            expect(transactionDebitExpenseOnDatabase).toMatchObject(
+              inputCorrespondingToDatabaseData,
             );
+            expect(transactionDebitExpenseOnDatabase.type).toEqual(
+              "DEBIT_EXPENSE",
+            );
+            expect(transactionDebitExpenseOnDatabase.accomplishedAt).toBeNull();
+            expect(
+              transactionDebitExpenseOnDatabase.transactionRecurrenceId,
+            ).toEqual(transactionRecurrenceOnDatabase.id);
 
-          expect(
-            transactionDebitExpenseOnDatabase.transactedAt.getTime(),
-          ).toEqual(expectedTransactedDate);
-        }
-      },
-    );
+            const expectedTransactedDate =
+              getExpectedTransactedDateFromEachTransaction(
+                input.transactedAt,
+                index,
+              );
+
+            expect(
+              transactionDebitExpenseOnDatabase.transactedAt.getTime(),
+            ).toEqual(expectedTransactedDate);
+          }
+        },
+      );
+    });
 
     describe("input data validations", () => {
       it("with missing installment fields", async () => {
+        const allInstallmentRecurrenceFieldsMissingResponse = await request(
+          app.getHttpServer(),
+        )
+          .post("/transactions/expenses")
+          .set("Cookie", getSessionCookie(session.entity))
+          .query(installmentTransactionQueryInput)
+          .send({
+            ...uniqueTransactionInput,
+            // @ts-expect-error has missing required fields
+          } satisfies TransactionDebitExpenseSchemaToCreateInstallment);
+
+        expect(
+          allInstallmentRecurrenceFieldsMissingResponse.statusCode,
+        ).toEqual(400);
+        expect(
+          allInstallmentRecurrenceFieldsMissingResponse.body.error,
+        ).toEqual("ValidationError");
+        expect(
+          Object.keys(allInstallmentRecurrenceFieldsMissingResponse.body.debug),
+        ).toEqual(["installmentPeriod", "installmentNumber"]);
+
         const installmentNumberMissingResponse = await request(
           app.getHttpServer(),
         )
@@ -574,7 +613,7 @@ describe("[Controller] POST /transactions/expenses", () => {
           .send({
             ...uniqueTransactionInput,
             installmentPeriod: "YEAR",
-            // @ts-expect-error field "installmentNumber" is required
+            // @ts-expect-error has missing required fields
           } satisfies TransactionDebitExpenseSchemaToCreateInstallment);
 
         expect(installmentNumberMissingResponse.statusCode).toEqual(400);
@@ -594,7 +633,7 @@ describe("[Controller] POST /transactions/expenses", () => {
           .send({
             ...uniqueTransactionInput,
             installmentNumber: 1,
-            // @ts-expect-error field "installmentPeriod" is required
+            // @ts-expect-error has missing required fields
           } satisfies TransactionDebitExpenseSchemaToCreateInstallment);
 
         expect(installmentPeriodMissingResponse.statusCode).toEqual(400);
