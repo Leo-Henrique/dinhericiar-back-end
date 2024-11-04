@@ -12,7 +12,7 @@ export class TransactionRecurrenceFixedEntitySchema {
       fixedOccurrences: z
         .array(z.number().int().positive())
         .min(1)
-        .transform(val => [...new Set(val)])
+        .transform(val => [...new Set(val)].sort((a, b) => a - b))
         .nullable(),
     });
   }

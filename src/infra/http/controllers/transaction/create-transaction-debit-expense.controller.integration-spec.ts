@@ -1034,6 +1034,78 @@ describe("[Controller] POST /transactions/expenses", () => {
           },
         );
       });
+
+      it("transform occurrences ordering from smallest to largest", async () => {
+        const occurrences = [5, 3, 10, 28, 22];
+        const response = await request(app.getHttpServer())
+          .post("/transactions/expenses")
+          .set("Cookie", getSessionCookie(session.entity))
+          .query(fixedTransactionQueryInput)
+          .send({
+            ...uniqueTransactionInput,
+            bankAccountId: bankAccount.entity.id.value,
+            fixedPeriod: "MONTH",
+            fixedInterval: 1,
+            fixedOccurrences: occurrences,
+          } satisfies TransactionDebitExpenseSchemaToCreateFixed);
+
+        expect(response.statusCode).toEqual(201);
+
+        const occurrencesOnDatabase = occurrences.sort((a, b) => a - b);
+        const [transactionRecurrenceOnDatabase] =
+          await drizzle.executeToGet<DrizzleTransactionRecurrenceData>(sql`
+            SELECT
+              *
+            FROM
+              transaction_recurrences
+            WHERE
+              period = 'MONTH'
+            AND
+              occurrences = ARRAY[${sql.raw(occurrencesOnDatabase.join(", "))}]
+          `);
+
+        expect(transactionRecurrenceOnDatabase).toBeTruthy();
+        expect(transactionRecurrenceOnDatabase.occurrences).toStrictEqual([
+          3, 5, 10, 22, 28,
+        ]);
+      });
+
+      it("transform occurrences removing duplicates", async () => {
+        const occurrences = [3, 5, 5, 6, 8, 8, 8, 9];
+        const response = await request(app.getHttpServer())
+          .post("/transactions/expenses")
+          .set("Cookie", getSessionCookie(session.entity))
+          .query(fixedTransactionQueryInput)
+          .send({
+            ...uniqueTransactionInput,
+            bankAccountId: bankAccount.entity.id.value,
+            fixedPeriod: "MONTH",
+            fixedInterval: 1,
+            fixedOccurrences: occurrences,
+          } satisfies TransactionDebitExpenseSchemaToCreateFixed);
+
+        expect(response.statusCode).toEqual(201);
+
+        const occurrencesOnDatabase = [
+          ...new Set(occurrences.sort((a, b) => a - b)),
+        ];
+        const [transactionRecurrenceOnDatabase] =
+          await drizzle.executeToGet<DrizzleTransactionRecurrenceData>(sql`
+            SELECT
+              *
+            FROM
+              transaction_recurrences
+            WHERE
+              period = 'MONTH'
+            AND
+              occurrences = ARRAY[${sql.raw(occurrencesOnDatabase.join(", "))}]
+          `);
+
+        expect(transactionRecurrenceOnDatabase).toBeTruthy();
+        expect(transactionRecurrenceOnDatabase.occurrences).toStrictEqual([
+          3, 5, 6, 8, 9,
+        ]);
+      });
     });
   });
 });
