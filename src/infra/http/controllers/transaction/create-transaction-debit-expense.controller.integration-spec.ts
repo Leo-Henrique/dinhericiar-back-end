@@ -793,6 +793,11 @@ describe("[Controller] POST /transactions/expenses", () => {
         async ({ period, getExpectedTransactedDateFromInstallment }) => {
           vi.setSystemTime(new Date(2024, 0, 1));
 
+          const getTransactionDateFromInstallmentSpy = vi.spyOn(
+            TransactionRecurrenceFixedEntity.prototype,
+            "getTransactionDateFromInstallment",
+          );
+
           const input = {
             ...uniqueTransactionInput,
             bankAccountId: bankAccount.entity.id.value,
@@ -808,6 +813,10 @@ describe("[Controller] POST /transactions/expenses", () => {
             .send(input);
 
           expect(response.statusCode).toEqual(201);
+
+          expect(getTransactionDateFromInstallmentSpy).toHaveBeenCalledTimes(
+            TransactionRecurrenceFixedEntity.numberOfInitialTransactionsCreated,
+          );
 
           const transactionRecurrencesOnDatabase =
             await drizzle.executeToGet<DrizzleTransactionRecurrenceData>(sql`
