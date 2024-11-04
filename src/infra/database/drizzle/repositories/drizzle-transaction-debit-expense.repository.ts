@@ -1,4 +1,5 @@
 import { TransactionDebitExpense } from "@/domain/entities/transaction-debit-expense.entity";
+import { TransactionRecurrenceFixed } from "@/domain/entities/transaction-recurrence-fixed.entity";
 import { TransactionRecurrenceInstallment } from "@/domain/entities/transaction-recurrence-installment.entity";
 import { TransactionDebitExpenseRepository } from "@/domain/gateways/repositories/debit-expense-transaction.repository";
 import { Injectable } from "@nestjs/common";
@@ -43,6 +44,54 @@ export class DrizzleTransactionDebitExpenseRepository
     await session.insert(drizzleTransactionRecurrenceTable).values({
       ...transactionRecurrenceInstallment.getRawData(),
       type: "INSTALLMENT",
+    });
+
+    const drizzleTransactionAllValues: DrizzleTransactionDataCreate[] = [];
+    const drizzleTransactionDebitExpenseAllValues: DrizzleTransactionDebitExpenseDataCreate[] =
+      [];
+
+    for (const transactionDebitExpense of transactionDebitExpenses) {
+      const { drizzleTransactionValues, drizzleTransactionDebitExpenseValues } =
+        DrizzleTransactionDebitExpenseMapper.toDrizzle(transactionDebitExpense);
+
+      drizzleTransactionAllValues.push(drizzleTransactionValues);
+      drizzleTransactionDebitExpenseAllValues.push(
+        drizzleTransactionDebitExpenseValues,
+      );
+    }
+
+    const chunk = 1000;
+
+    for (
+      let currentChunk = 0;
+      currentChunk < transactionDebitExpenses.length;
+      currentChunk += chunk
+    ) {
+      const drizzleTransactionAllValuesChunk =
+        drizzleTransactionAllValues.slice(currentChunk, currentChunk + chunk);
+      const drizzleTransactionDebitExpenseAllValuesChunk =
+        drizzleTransactionDebitExpenseAllValues.slice(
+          currentChunk,
+          currentChunk + chunk,
+        );
+
+      await session
+        .insert(drizzleTransactionTable)
+        .values(drizzleTransactionAllValuesChunk);
+      await session
+        .insert(drizzleTransactionDebitExpenseTable)
+        .values(drizzleTransactionDebitExpenseAllValuesChunk);
+    }
+  }
+
+  async createManyWithFixedRecurrence(
+    transactionDebitExpenses: TransactionDebitExpense[],
+    transactionRecurrenceFixed: TransactionRecurrenceFixed,
+    { session }: { session: DrizzleSession } = { session: this.drizzle.client },
+  ): Promise<void> {
+    await session.insert(drizzleTransactionRecurrenceTable).values({
+      ...transactionRecurrenceFixed.getRawData(),
+      type: "FIXED",
     });
 
     const drizzleTransactionAllValues: DrizzleTransactionDataCreate[] = [];

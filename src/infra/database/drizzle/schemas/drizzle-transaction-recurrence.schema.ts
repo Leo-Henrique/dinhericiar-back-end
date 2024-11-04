@@ -55,8 +55,6 @@ export const drizzleTransactionRecurrenceTable = ddl.pgTable(
           ${table.installments} IS NULL
         AND 
           ${table.interval} IS NOT NULL
-        AND 
-          ${table.occurrences} IS NOT NULL
         )
       `,
     ),

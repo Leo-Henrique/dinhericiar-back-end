@@ -41,7 +41,7 @@ export class TransactionRecurrenceFixedEntitySchema {
         message:
           "No período anual, apenas números do mês são válidos como ocorrência na transação fixa.",
         fatal: true,
-        path: ["occurrences"],
+        path: ["fixedOccurrences"],
       });
 
       return z.NEVER;
@@ -59,7 +59,7 @@ export class TransactionRecurrenceFixedEntitySchema {
         message:
           "No período mensal, apenas dias do mês são válidos como ocorrência na transação fixa.",
         fatal: true,
-        path: ["occurrences"],
+        path: ["fixedOccurrences"],
       });
 
       return z.NEVER;
@@ -77,7 +77,7 @@ export class TransactionRecurrenceFixedEntitySchema {
         message:
           "No período semanal, apenas dias da semana são válidos como ocorrência na transação fixa.",
         fatal: true,
-        path: ["occurrences"],
+        path: ["fixedOccurrences"],
       });
 
       return z.NEVER;

@@ -1,7 +1,10 @@
 import {
+  TransactionDebitExpenseSchemaToCreateFixed,
   TransactionDebitExpenseSchemaToCreateInstallment,
   TransactionDebitExpenseSchemaToCreateUnique,
 } from "@/domain/entities/schemas/transaction-debit-expense.schema";
+import { TransactionRecurrenceFixedEntity } from "@/domain/entities/transaction-recurrence-fixed.entity";
+import { TransactionRecurrenceInstallmentEntity } from "@/domain/entities/transaction-recurrence-installment.entity";
 import { AppModule } from "@/infra/app.module";
 import { DatabaseModule } from "@/infra/database/database.module";
 import { DrizzleService } from "@/infra/database/drizzle/drizzle.service";
@@ -33,7 +36,16 @@ import {
 import { TransactionDebitExpenseFactory } from "test/factories/transaction-debit-expense.factory";
 import { UserFactory, UserFactoryOutput } from "test/factories/user.factory";
 import { getSessionCookie } from "test/integration/get-session-cookie";
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 import { CreateTransactionDebitExpenseControllerQuery } from "./create-transaction-debit-expense.controller";
 
 describe("[Controller] POST /transactions/expenses", () => {
@@ -439,8 +451,9 @@ describe("[Controller] POST /transactions/expenses", () => {
     describe("should be able to create a installment debit expense transaction", () => {
       it.each([
         {
+          name: "annual",
           period: "YEAR" as const,
-          getExpectedTransactedDateFromEachTransaction: (
+          getExpectedTransactedDateFromInstallment: (
             inputTransactedDate: Date,
             index: number,
           ) => {
@@ -452,8 +465,9 @@ describe("[Controller] POST /transactions/expenses", () => {
           },
         },
         {
+          name: "monthly",
           period: "MONTH" as const,
-          getExpectedTransactedDateFromEachTransaction: (
+          getExpectedTransactedDateFromInstallment: (
             inputTransactedDate: Date,
             index: number,
           ) => {
@@ -465,8 +479,9 @@ describe("[Controller] POST /transactions/expenses", () => {
           },
         },
         {
+          name: "weekly",
           period: "WEEK" as const,
-          getExpectedTransactedDateFromEachTransaction: (
+          getExpectedTransactedDateFromInstallment: (
             inputTransactedDate: Date,
             index: number,
           ) => {
@@ -478,13 +493,18 @@ describe("[Controller] POST /transactions/expenses", () => {
           },
         },
       ])(
-        "with $period period",
-        async ({ period, getExpectedTransactedDateFromEachTransaction }) => {
+        "with $name period",
+        async ({ period, getExpectedTransactedDateFromInstallment }) => {
+          const getTransactionDateFromInstallmentSpy = vi.spyOn(
+            TransactionRecurrenceInstallmentEntity.prototype,
+            "getTransactionDateFromInstallment",
+          );
+
           const input = {
             ...uniqueTransactionInput,
             bankAccountId: bankAccount.entity.id.value,
             installmentPeriod: period,
-            installmentNumber: 10,
+            installmentNumber: 5,
           } satisfies TransactionDebitExpenseSchemaToCreateInstallment;
 
           const response = await request(app.getHttpServer())
@@ -495,6 +515,10 @@ describe("[Controller] POST /transactions/expenses", () => {
 
           expect(response.statusCode).toEqual(201);
 
+          expect(getTransactionDateFromInstallmentSpy).toHaveBeenCalledTimes(
+            input.installmentNumber,
+          );
+
           const transactionRecurrencesOnDatabase =
             await drizzle.executeToGet<DrizzleTransactionRecurrenceData>(sql`
               SELECT
@@ -502,8 +526,10 @@ describe("[Controller] POST /transactions/expenses", () => {
               FROM
                 transaction_recurrences
               WHERE
+                type = 'INSTALLMENT'
+              AND
                 period = ${period}
-          `);
+            `);
 
           expect(transactionRecurrencesOnDatabase).toHaveLength(1);
 
@@ -532,7 +558,7 @@ describe("[Controller] POST /transactions/expenses", () => {
               transaction_debit_expenses.transaction_id = transactions.id
             WHERE
               transactions.transaction_recurrence_id = ${transactionRecurrenceOnDatabase.id}
-        `);
+          `);
 
           expect(transactionDebitExpensesOnDatabase).toHaveLength(
             input.installmentNumber,
@@ -548,12 +574,12 @@ describe("[Controller] POST /transactions/expenses", () => {
           } = input;
 
           for (
-            let index = 0;
-            index < transactionDebitExpensesOnDatabase.length;
-            index++
+            let transactionIndex = 0;
+            transactionIndex < transactionDebitExpensesOnDatabase.length;
+            transactionIndex++
           ) {
             const transactionDebitExpenseOnDatabase =
-              transactionDebitExpensesOnDatabase[index];
+              transactionDebitExpensesOnDatabase[transactionIndex];
 
             expect(transactionDebitExpenseOnDatabase).toBeTruthy();
             expect(transactionDebitExpenseOnDatabase).toMatchObject(
@@ -567,15 +593,15 @@ describe("[Controller] POST /transactions/expenses", () => {
               transactionDebitExpenseOnDatabase.transactionRecurrenceId,
             ).toEqual(transactionRecurrenceOnDatabase.id);
 
-            const expectedTransactedDate =
-              getExpectedTransactedDateFromEachTransaction(
+            const expectedTransactionDate =
+              getExpectedTransactedDateFromInstallment(
                 input.transactedAt,
-                index,
+                transactionIndex,
               );
 
             expect(
               transactionDebitExpenseOnDatabase.transactedAt.getTime(),
-            ).toEqual(expectedTransactedDate);
+            ).toEqual(expectedTransactionDate);
           }
         },
       );
@@ -694,6 +720,319 @@ describe("[Controller] POST /transactions/expenses", () => {
         expect(Object.keys(decimalNumberResponse.body.debug)).toEqual([
           "installmentNumber",
         ]);
+      });
+    });
+  });
+
+  describe("fixed transaction", () => {
+    const fixedTransactionQueryInput = {
+      recurrence: "FIXED",
+    } satisfies CreateTransactionDebitExpenseControllerQuery;
+
+    beforeAll(async () => {
+      await drizzle.client.execute(sql`
+        DELETE FROM transactions;
+        DELETE FROM transaction_recurrences;
+      `);
+    });
+
+    describe("should be able to create a fixed debit expense transaction", () => {
+      beforeEach(() => {
+        vi.useFakeTimers();
+      });
+
+      afterEach(() => {
+        vi.useRealTimers();
+      });
+
+      it.each([
+        {
+          name: "annual",
+          period: "YEAR" as const,
+          getExpectedTransactedDateFromInstallment: (
+            inputTransactedDate: Date,
+            index: number,
+          ) => {
+            const expectedDate = new Date(inputTransactedDate.getTime());
+
+            expectedDate.setFullYear(inputTransactedDate.getFullYear() + index);
+
+            return expectedDate.getTime();
+          },
+        },
+        {
+          name: "monthly",
+          period: "MONTH" as const,
+          getExpectedTransactedDateFromInstallment: (
+            inputTransactedDate: Date,
+            index: number,
+          ) => {
+            const expectedDate = new Date(inputTransactedDate.getTime());
+
+            expectedDate.setMonth(inputTransactedDate.getMonth() + index);
+
+            return expectedDate.getTime();
+          },
+        },
+        {
+          name: "weekly",
+          period: "WEEK" as const,
+          getExpectedTransactedDateFromInstallment: (
+            inputTransactedDate: Date,
+            index: number,
+          ) => {
+            const expectedDate = new Date(inputTransactedDate.getTime());
+
+            expectedDate.setDate(inputTransactedDate.getDate() + 7 * index);
+
+            return expectedDate.getTime();
+          },
+        },
+      ])(
+        "with $name period",
+        async ({ period, getExpectedTransactedDateFromInstallment }) => {
+          vi.setSystemTime(new Date(2024, 0, 1));
+
+          const input = {
+            ...uniqueTransactionInput,
+            bankAccountId: bankAccount.entity.id.value,
+            fixedPeriod: period,
+            fixedInterval: 1,
+            fixedOccurrences: null,
+          } satisfies TransactionDebitExpenseSchemaToCreateFixed;
+
+          const response = await request(app.getHttpServer())
+            .post("/transactions/expenses")
+            .set("Cookie", getSessionCookie(session.entity))
+            .query(fixedTransactionQueryInput)
+            .send(input);
+
+          expect(response.statusCode).toEqual(201);
+
+          const transactionRecurrencesOnDatabase =
+            await drizzle.executeToGet<DrizzleTransactionRecurrenceData>(sql`
+              SELECT
+                *
+              FROM
+                transaction_recurrences
+              WHERE
+                period = ${period}
+            `);
+
+          expect(transactionRecurrencesOnDatabase).toHaveLength(1);
+
+          const [transactionRecurrenceOnDatabase] =
+            transactionRecurrencesOnDatabase;
+
+          expect(transactionRecurrenceOnDatabase).toStrictEqual({
+            id: expect.any(String),
+            period: input.fixedPeriod,
+            installments: null,
+            interval: input.fixedInterval,
+            occurrences: input.fixedOccurrences,
+            type: "FIXED",
+          });
+
+          const transactionDebitExpensesOnDatabase = await drizzle.executeToGet<
+            DrizzleTransactionData & DrizzleTransactionDebitExpenseData
+          >(sql`
+            SELECT
+              *
+            FROM
+              transactions
+            INNER JOIN
+              transaction_debit_expenses 
+            ON 
+              transaction_debit_expenses.transaction_id = transactions.id
+            WHERE
+              transactions.transaction_recurrence_id = ${transactionRecurrenceOnDatabase.id}
+          `);
+
+          expect(transactionDebitExpensesOnDatabase).toHaveLength(
+            TransactionRecurrenceFixedEntity.numberOfInitialTransactionsCreated,
+          );
+
+          const {
+            categoryName, // eslint-disable-line @typescript-eslint/no-unused-vars
+            isAccomplished, // eslint-disable-line @typescript-eslint/no-unused-vars
+            fixedPeriod, // eslint-disable-line @typescript-eslint/no-unused-vars
+            fixedInterval, // eslint-disable-line @typescript-eslint/no-unused-vars
+            fixedOccurrences, // eslint-disable-line @typescript-eslint/no-unused-vars
+            transactedAt, // eslint-disable-line @typescript-eslint/no-unused-vars
+            ...inputCorrespondingToDatabaseData
+          } = input;
+
+          const firstTransactionDate = new Date();
+
+          for (
+            let transactionIndex = 0;
+            transactionIndex < transactionDebitExpensesOnDatabase.length;
+            transactionIndex++
+          ) {
+            const transactionDebitExpenseOnDatabase =
+              transactionDebitExpensesOnDatabase[transactionIndex];
+
+            expect(transactionDebitExpenseOnDatabase).toBeTruthy();
+            expect(transactionDebitExpenseOnDatabase).toMatchObject(
+              inputCorrespondingToDatabaseData,
+            );
+            expect(transactionDebitExpenseOnDatabase.type).toEqual(
+              "DEBIT_EXPENSE",
+            );
+            expect(transactionDebitExpenseOnDatabase.accomplishedAt).toBeNull();
+            expect(
+              transactionDebitExpenseOnDatabase.transactionRecurrenceId,
+            ).toEqual(transactionRecurrenceOnDatabase.id);
+
+            const expectedTransactionDate =
+              getExpectedTransactedDateFromInstallment(
+                firstTransactionDate,
+                transactionIndex,
+              );
+
+            expect(
+              transactionDebitExpenseOnDatabase.transactedAt.getTime(),
+            ).toEqual(expectedTransactionDate);
+          }
+        },
+      );
+    });
+
+    describe("input data validations", () => {
+      it("with missing fixed recurrence fields", async () => {
+        const allFixedRecurrenceFieldsMissingResponse = await request(
+          app.getHttpServer(),
+        )
+          .post("/transactions/expenses")
+          .set("Cookie", getSessionCookie(session.entity))
+          .query(fixedTransactionQueryInput)
+          .send({
+            ...uniqueTransactionInput,
+            // @ts-expect-error has missing required fields
+          } satisfies TransactionDebitExpenseSchemaToCreateFixed);
+
+        expect(allFixedRecurrenceFieldsMissingResponse.statusCode).toEqual(400);
+        expect(allFixedRecurrenceFieldsMissingResponse.body.error).toEqual(
+          "ValidationError",
+        );
+        expect(
+          Object.keys(allFixedRecurrenceFieldsMissingResponse.body.debug),
+        ).toEqual(["fixedPeriod", "fixedInterval", "fixedOccurrences"]);
+
+        const intervalAndOccurrenceFieldsMissingResponse = await request(
+          app.getHttpServer(),
+        )
+          .post("/transactions/expenses")
+          .set("Cookie", getSessionCookie(session.entity))
+          .query(fixedTransactionQueryInput)
+          .send({
+            ...uniqueTransactionInput,
+            fixedPeriod: "MONTH",
+            // @ts-expect-error has missing required fields
+          } satisfies TransactionDebitExpenseSchemaToCreateFixed);
+
+        expect(intervalAndOccurrenceFieldsMissingResponse.statusCode).toEqual(
+          400,
+        );
+        expect(intervalAndOccurrenceFieldsMissingResponse.body.error).toEqual(
+          "ValidationError",
+        );
+        expect(
+          Object.keys(intervalAndOccurrenceFieldsMissingResponse.body.debug),
+        ).toEqual(["fixedInterval", "fixedOccurrences"]);
+      });
+
+      it("with invalid fixed period", async () => {
+        const response = await request(app.getHttpServer())
+          .post("/transactions/expenses")
+          .set("Cookie", getSessionCookie(session.entity))
+          .query(fixedTransactionQueryInput)
+          .send({
+            ...uniqueTransactionInput,
+            // @ts-expect-error value "DAY" is not allowed
+            fixedPeriod: "DAY",
+            fixedInterval: 1,
+            fixedOccurrences: null,
+          } satisfies TransactionDebitExpenseSchemaToCreateFixed);
+
+        expect(response.statusCode).toEqual(400);
+        expect(response.body.error).toEqual("ValidationError");
+        expect(Object.keys(response.body.debug)).toEqual(["fixedPeriod"]);
+      });
+
+      it("with invalid fixed interval", async () => {
+        const negativeNumberResponse = await request(app.getHttpServer())
+          .post("/transactions/expenses")
+          .set("Cookie", getSessionCookie(session.entity))
+          .query(fixedTransactionQueryInput)
+          .send({
+            ...uniqueTransactionInput,
+            fixedPeriod: "MONTH",
+            fixedInterval: -1,
+            fixedOccurrences: null,
+          } satisfies TransactionDebitExpenseSchemaToCreateFixed);
+
+        expect(negativeNumberResponse.statusCode).toEqual(400);
+        expect(negativeNumberResponse.body.error).toEqual("ValidationError");
+        expect(Object.keys(negativeNumberResponse.body.debug)).toEqual([
+          "fixedInterval",
+        ]);
+
+        const decimalNumberResponse = await request(app.getHttpServer())
+          .post("/transactions/expenses")
+          .set("Cookie", getSessionCookie(session.entity))
+          .query(fixedTransactionQueryInput)
+          .send({
+            ...uniqueTransactionInput,
+            fixedPeriod: "MONTH",
+            fixedInterval: 0.7,
+            fixedOccurrences: null,
+          } satisfies TransactionDebitExpenseSchemaToCreateFixed);
+
+        expect(decimalNumberResponse.statusCode).toEqual(400);
+        expect(decimalNumberResponse.body.error).toEqual("ValidationError");
+        expect(Object.keys(decimalNumberResponse.body.debug)).toEqual([
+          "fixedInterval",
+        ]);
+      });
+
+      describe("with invalid fixed occurrences", () => {
+        it.each([
+          {
+            period: "YEAR" as const,
+            eachInvalidOccurrences: [[0], [13], [0, 1, 2], [1, 2, 13]],
+          },
+          {
+            period: "MONTH" as const,
+            eachInvalidOccurrences: [[0], [32], [0, 1, 2], [1, 2, 32]],
+          },
+          {
+            period: "WEEK" as const,
+            eachInvalidOccurrences: [[0], [8], [0, 1, 2], [1, 2, 8]],
+          },
+        ])(
+          "with $period period",
+          async ({ period, eachInvalidOccurrences }) => {
+            for (const occurrences of eachInvalidOccurrences) {
+              const response = await request(app.getHttpServer())
+                .post("/transactions/expenses")
+                .set("Cookie", getSessionCookie(session.entity))
+                .query(fixedTransactionQueryInput)
+                .send({
+                  ...uniqueTransactionInput,
+                  fixedPeriod: period,
+                  fixedInterval: 1,
+                  fixedOccurrences: occurrences,
+                } satisfies TransactionDebitExpenseSchemaToCreateFixed);
+
+              expect(response.statusCode).toEqual(400);
+              expect(response.body.error).toEqual("ValidationError");
+              expect(Object.keys(response.body.debug)).toEqual([
+                "fixedOccurrences",
+              ]);
+            }
+          },
+        );
       });
     });
   });

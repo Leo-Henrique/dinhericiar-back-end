@@ -1,3 +1,4 @@
+import { CreateFixedTransactionDebitExpenseUseCase } from "@/domain/use-cases/transaction/create-fixed-transaction-debit-expense.use-case";
 import { CreateInstallmentTransactionDebitExpenseUseCase } from "@/domain/use-cases/transaction/create-installment-transaction-debit-expense.use-case";
 import { CreateUniqueTransactionDebitExpenseUseCase } from "@/domain/use-cases/transaction/create-unique-transaction-debit-expense.use-case";
 import { DatabaseModule } from "@/infra/database/database.module";
@@ -10,6 +11,7 @@ import { CreateTransactionDebitExpenseController } from "./transaction/create-tr
   providers: [
     CreateUniqueTransactionDebitExpenseUseCase,
     CreateInstallmentTransactionDebitExpenseUseCase,
+    CreateFixedTransactionDebitExpenseUseCase,
   ],
   controllers: [CreateTransactionDebitExpenseController],
 })
