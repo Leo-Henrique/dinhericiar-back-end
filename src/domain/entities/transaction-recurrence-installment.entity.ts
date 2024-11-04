@@ -34,21 +34,29 @@ export class TransactionRecurrenceInstallmentEntity extends Entity<TransactionRe
     firstTransactionDate: Date,
     currentInstallment: number,
   ) {
-    const date = new Date(firstTransactionDate.getTime());
+    if (currentInstallment === 1) return firstTransactionDate;
+
+    const transactionDate = new Date(firstTransactionDate.getTime());
     const installmentIndex = currentInstallment - 1;
 
     if (this.data.period === "YEAR") {
-      date.setFullYear(firstTransactionDate.getFullYear() + installmentIndex);
+      transactionDate.setFullYear(
+        firstTransactionDate.getFullYear() + installmentIndex,
+      );
     }
 
     if (this.data.period === "MONTH") {
-      date.setMonth(firstTransactionDate.getMonth() + installmentIndex);
+      transactionDate.setMonth(
+        firstTransactionDate.getMonth() + installmentIndex,
+      );
     }
 
     if (this.data.period === "WEEK") {
-      date.setDate(firstTransactionDate.getDate() + 7 * installmentIndex);
+      transactionDate.setDate(
+        firstTransactionDate.getDate() + 7 * installmentIndex,
+      );
     }
 
-    return date;
+    return transactionDate;
   }
 }
