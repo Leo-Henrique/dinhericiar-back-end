@@ -24,6 +24,7 @@ export const drizzleTransactionDebitExpenseTable = ddl.pgTable(
   {
     transactionId: ddl
       .uuid("transaction_id")
+      .notNull()
       .primaryKey()
       .references(() => drizzleTransactionTable.id, {
         onUpdate: "cascade",
@@ -31,12 +32,14 @@ export const drizzleTransactionDebitExpenseTable = ddl.pgTable(
       }),
     bankAccountId: ddl
       .uuid("bank_account_id")
+      .notNull()
       .references(() => drizzleBankAccountTable.id, {
         onUpdate: "cascade",
         onDelete: "cascade",
       }),
     transactionCategoryId: ddl
       .uuid("transaction_category_id")
+      .notNull()
       .references(() => drizzleTransactionCategoryTable.id, {
         onUpdate: "cascade",
         onDelete: "restrict",
