@@ -19,6 +19,7 @@ import {
 import { BankAccountRepository } from "@/domain/gateways/repositories/bank-account.repository";
 import { TransactionDebitExpenseRepository } from "@/domain/gateways/repositories/debit-expense-transaction.repository";
 import { TransactionCategoryRepository } from "@/domain/gateways/repositories/transaction-category.repository";
+import { TransactionDebitExpenseRepository } from "@/domain/gateways/repositories/transaction-debit-expense.repository";
 import { UnitOfWork } from "@/domain/gateways/unit-of-work";
 import { Injectable } from "@nestjs/common";
 
@@ -42,7 +43,7 @@ export class CreateFixedTransactionDebitExpenseUseCase extends UseCase<
   constructor(
     private readonly bankAccountRepository: BankAccountRepository,
     private readonly transactionCategoryRepository: TransactionCategoryRepository,
-    private readonly debitExpenseTransactionRepository: TransactionDebitExpenseRepository,
+    private readonly transactionDebitExpenseRepository: TransactionDebitExpenseRepository,
     private readonly unitOfWork: UnitOfWork,
   ) {
     super();
@@ -54,10 +55,10 @@ export class CreateFixedTransactionDebitExpenseUseCase extends UseCase<
     categoryName,
     isAccomplished,
     amount,
+    description,
     fixedPeriod,
     fixedInterval,
     fixedOccurrences,
-    ...restInput
   }: CreateFixedTransactionDebitExpenseUseCaseInput) {
     const bankAccount = await this.bankAccountRepository.findUniqueByIdFromUser(
       bankAccountId,
@@ -110,14 +111,15 @@ export class CreateFixedTransactionDebitExpenseUseCase extends UseCase<
           currentInstallment,
         );
 
+      const accomplishedAt = isAccomplished ? new Date() : null;
       const transactionDebitExpense = TransactionDebitExpenseEntity.create({
-        ...restInput,
         bankAccountId,
         transactionCategoryId: transactionCategory.id.value,
         transactionRecurrenceId: transactionRecurrenceFixed.id.value,
         transactedAt: installmentTransactedAt,
-        isAccomplished: currentInstallment === 1 ? isAccomplished : false,
+        accomplishedAt: currentInstallment === 1 ? accomplishedAt : null,
         amount,
+        description,
       });
 
       transactionDebitExpenses.push(transactionDebitExpense);
@@ -139,7 +141,7 @@ export class CreateFixedTransactionDebitExpenseUseCase extends UseCase<
         );
       }
 
-      await this.debitExpenseTransactionRepository.createManyWithFixedRecurrence(
+      await this.transactionDebitExpenseRepository.createManyWithFixedRecurrence(
         transactionDebitExpenses,
         transactionRecurrenceFixed,
         { session },

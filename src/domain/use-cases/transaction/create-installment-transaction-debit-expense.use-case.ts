@@ -17,8 +17,8 @@ import {
   ResourceNotFoundError,
 } from "@/domain/errors";
 import { BankAccountRepository } from "@/domain/gateways/repositories/bank-account.repository";
-import { TransactionDebitExpenseRepository } from "@/domain/gateways/repositories/debit-expense-transaction.repository";
 import { TransactionCategoryRepository } from "@/domain/gateways/repositories/transaction-category.repository";
+import { TransactionDebitExpenseRepository } from "@/domain/gateways/repositories/transaction-debit-expense.repository";
 import { UnitOfWork } from "@/domain/gateways/unit-of-work";
 import { Injectable } from "@nestjs/common";
 
@@ -42,7 +42,7 @@ export class CreateInstallmentTransactionDebitExpenseUseCase extends UseCase<
   constructor(
     private readonly bankAccountRepository: BankAccountRepository,
     private readonly transactionCategoryRepository: TransactionCategoryRepository,
-    private readonly debitExpenseTransactionRepository: TransactionDebitExpenseRepository,
+    private readonly transactionDebitExpenseRepository: TransactionDebitExpenseRepository,
     private readonly unitOfWork: UnitOfWork,
   ) {
     super();
@@ -108,13 +108,14 @@ export class CreateInstallmentTransactionDebitExpenseUseCase extends UseCase<
           currentInstallment,
         );
 
+      const accomplishedAt = isAccomplished ? new Date() : null;
       const transactionDebitExpense = TransactionDebitExpenseEntity.create({
         ...restInput,
         bankAccountId,
         transactionCategoryId: transactionCategory.id.value,
         transactionRecurrenceId: transactionRecurrenceInstallment.id.value,
         transactedAt: installmentTransactedAt,
-        isAccomplished: currentInstallment === 1 ? isAccomplished : false,
+        accomplishedAt: currentInstallment === 1 ? accomplishedAt : null,
         amount,
       });
 
@@ -137,7 +138,7 @@ export class CreateInstallmentTransactionDebitExpenseUseCase extends UseCase<
         );
       }
 
-      await this.debitExpenseTransactionRepository.createManyWithInstallmentRecurrence(
+      await this.transactionDebitExpenseRepository.createManyWithInstallmentRecurrence(
         transactionDebitExpenses,
         transactionRecurrenceInstallment,
         { session },

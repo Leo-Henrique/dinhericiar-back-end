@@ -22,7 +22,7 @@ export type TransactionDebitExpenseDataCreateInput = Omit<
     TransactionDebitExpenseData,
     TransactionDebitExpenseSchemaToCreateUnique
   >,
-  "categoryName" | "accomplishedAt"
+  "categoryName" | "isAccomplished"
 >;
 
 export class TransactionDebitExpenseEntity extends TransactionEntity<TransactionDebitExpenseData> {
@@ -32,6 +32,7 @@ export class TransactionDebitExpenseEntity extends TransactionEntity<Transaction
     return new this().createEntity({
       updatedAt: null,
       createdAt: new Date(),
+      accomplishedAt: null,
       ...input,
       id: new UniqueEntityId(input.id),
       bankAccountId: new UniqueEntityId(input.bankAccountId),
@@ -39,7 +40,6 @@ export class TransactionDebitExpenseEntity extends TransactionEntity<Transaction
       transactionRecurrenceId: input.transactionRecurrenceId
         ? new UniqueEntityId(input.transactionRecurrenceId)
         : null,
-      accomplishedAt: input.isAccomplished ? new Date() : null,
     });
   }
 }

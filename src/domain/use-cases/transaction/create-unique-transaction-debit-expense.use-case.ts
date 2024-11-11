@@ -16,8 +16,8 @@ import {
   ResourceNotFoundError,
 } from "@/domain/errors";
 import { BankAccountRepository } from "@/domain/gateways/repositories/bank-account.repository";
-import { TransactionDebitExpenseRepository } from "@/domain/gateways/repositories/debit-expense-transaction.repository";
 import { TransactionCategoryRepository } from "@/domain/gateways/repositories/transaction-category.repository";
+import { TransactionDebitExpenseRepository } from "@/domain/gateways/repositories/transaction-debit-expense.repository";
 import { UnitOfWork } from "@/domain/gateways/unit-of-work";
 import { Injectable } from "@nestjs/common";
 
@@ -51,6 +51,7 @@ export class CreateUniqueTransactionDebitExpenseUseCase extends UseCase<
     authenticatedUser,
     bankAccountId,
     categoryName,
+    isAccomplished,
     ...restInput
   }: CreateUniqueTransactionDebitExpenseUseCaseInput) {
     const bankAccount = await this.bankAccountRepository.findUniqueByIdFromUser(
@@ -86,6 +87,7 @@ export class CreateUniqueTransactionDebitExpenseUseCase extends UseCase<
     const transactionDebitExpense = TransactionDebitExpenseEntity.create({
       bankAccountId,
       transactionCategoryId: transactionCategory.id.value,
+      accomplishedAt: isAccomplished ? new Date() : null,
       ...restInput,
     });
     const { accomplishedAt, amount } = transactionDebitExpense;
