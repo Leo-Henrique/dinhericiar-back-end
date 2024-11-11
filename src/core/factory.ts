@@ -8,7 +8,4 @@ type FactoryOutput<Input> = {
 export abstract class Factory<Input> {
   abstract make(input: Input): FactoryOutput<Input>;
   abstract makeAndSaveUnique(input: Input): Promise<FactoryOutput<Input>>;
-  abstract makeAndSaveMany(
-    inputs: [Input, ...Input[]],
-  ): Promise<FactoryOutput<Input>[]>;
 }
