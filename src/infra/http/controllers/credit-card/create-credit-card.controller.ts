@@ -31,7 +31,7 @@ export class CreateCreditCardController {
 
   @ApiTags("Cartões de crédito")
   @Post("/credit-cards")
-  @HttpCode(204)
+  @HttpCode(201)
   @ZodSchemaPipe({
     body: createCreditCardControllerBodySchema,
   })

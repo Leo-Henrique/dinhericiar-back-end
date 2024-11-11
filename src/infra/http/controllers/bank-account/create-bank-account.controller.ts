@@ -38,7 +38,7 @@ export class CreateBankAccountController {
 
   @ApiTags("Contas bancárias")
   @Post("/bank-accounts")
-  @HttpCode(204)
+  @HttpCode(201)
   @ZodSchemaPipe({
     body: createBankAccountControllerBodySchema,
   })

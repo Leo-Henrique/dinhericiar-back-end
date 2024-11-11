@@ -74,7 +74,7 @@ describe("[Controller] POST /bank-accounts", () => {
       .set("Cookie", getSessionCookie(session.entity))
       .send(input);
 
-    expect(response.statusCode).toEqual(204);
+    expect(response.statusCode).toEqual(201);
 
     const bankAccountsOnDatabase =
       await drizzle.executeToGet<DrizzleBankAccountData>(sql`
@@ -120,7 +120,7 @@ describe("[Controller] POST /bank-accounts", () => {
       .set("Cookie", getSessionCookie(sessionFromAnotherUser.entity))
       .send(input);
 
-    expect(responseFromAnotherUser.statusCode).toEqual(204);
+    expect(responseFromAnotherUser.statusCode).toEqual(201);
   });
 
   it("should not be able to create a bank account with an name already registered by the same user", async () => {
@@ -149,7 +149,7 @@ describe("[Controller] POST /bank-accounts", () => {
       .set("Cookie", getSessionCookie(sessionFromAnotherUser.entity))
       .send(input);
 
-    expect(responseFromAnotherUser.statusCode).toEqual(204);
+    expect(responseFromAnotherUser.statusCode).toEqual(201);
   });
 
   it("should not be able to create a bank account with an institution name already registered by the same user", async () => {
@@ -177,7 +177,7 @@ describe("[Controller] POST /bank-accounts", () => {
       .set("Cookie", getSessionCookie(sessionFromAnotherUser.entity))
       .send(input);
 
-    expect(responseFromAnotherUser.statusCode).toEqual(204);
+    expect(responseFromAnotherUser.statusCode).toEqual(201);
   });
 
   describe("Input data validations", () => {

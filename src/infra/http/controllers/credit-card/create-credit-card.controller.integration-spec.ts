@@ -101,7 +101,7 @@ describe("[Controller] POST /credit-cards", () => {
       .set("Cookie", getSessionCookie(session.entity))
       .send(validInput);
 
-    expect(response.statusCode).toEqual(204);
+    expect(response.statusCode).toEqual(201);
 
     const creditCardsOnDatabase =
       await drizzle.executeToGet<DrizzleCreditCardData>(sql`
@@ -152,7 +152,7 @@ describe("[Controller] POST /credit-cards", () => {
         isMainCard: true,
       } satisfies CreateCreditCardControllerBody);
 
-    expect(responseFromAnotherUser.statusCode).toEqual(204);
+    expect(responseFromAnotherUser.statusCode).toEqual(201);
   });
 
   it("should not be able to create a credit card with an name already registered by the same user", async () => {
@@ -182,7 +182,7 @@ describe("[Controller] POST /credit-cards", () => {
         name: creditCard.entity.name,
       } satisfies CreateCreditCardControllerBody);
 
-    expect(responseFromAnotherUser.statusCode).toEqual(204);
+    expect(responseFromAnotherUser.statusCode).toEqual(201);
   });
 
   it("should not be able to create a credit card with a non-existing bank account from user", async () => {
