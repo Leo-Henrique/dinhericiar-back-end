@@ -23,6 +23,10 @@ const schema = z.object({
   POSTGRES_DATABASE: z.string(),
   RESEND_API_KEY: z.string(),
   RESEND_EMAIL_SENDER: z.string().email(),
+  REDIS_PASSWORD: z.string(),
+  REDIS_HOSTNAME: z.string(),
+  REDIS_PORT: z.coerce.number(),
+  REDIS_DATABASE: z.coerce.number(),
 });
 
 const parsedEnv = schema.safeParse(process.env);

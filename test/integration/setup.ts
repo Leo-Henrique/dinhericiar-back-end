@@ -1,4 +1,5 @@
 import { drizzleClient } from "@/infra/database/drizzle/drizzle.service";
+import { redisClient } from "@/infra/queues/redis/redis.service";
 import { randomUUID } from "crypto";
 import { sql } from "drizzle-orm";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
@@ -14,10 +15,14 @@ beforeAll(async () => {
     SET search_path TO ${sql.identifier(postgresSchemaNameFromCurrentTestSuite)};
   `);
 
-  await migrate(drizzleClient, {
-    migrationsFolder: DRIZZLE_MIGRATIONS_DIR_IN_INTEGRATION_TESTING_ENVIRONMENT,
-    migrationsSchema: postgresSchemaNameFromCurrentTestSuite,
-  });
+  await Promise.all([
+    migrate(drizzleClient, {
+      migrationsFolder:
+        DRIZZLE_MIGRATIONS_DIR_IN_INTEGRATION_TESTING_ENVIRONMENT,
+      migrationsSchema: postgresSchemaNameFromCurrentTestSuite,
+    }),
+    redisClient.flushdb(),
+  ]);
 });
 
 afterAll(async () => {
