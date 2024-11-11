@@ -32,6 +32,7 @@ export class TransactionDebitExpenseEntity extends TransactionEntity<Transaction
     return new this().createEntity({
       updatedAt: null,
       createdAt: new Date(),
+      createdByQueue: false,
       accomplishedAt: null,
       ...input,
       id: new UniqueEntityId(input.id),

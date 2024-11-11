@@ -13,7 +13,10 @@ import { DrizzleTransactionCategoryData } from "@/infra/database/drizzle/schemas
 import { DrizzleTransactionDebitExpenseData } from "@/infra/database/drizzle/schemas/drizzle-transaction-debit-expense.schema";
 import { DrizzleTransactionRecurrenceData } from "@/infra/database/drizzle/schemas/drizzle-transaction-recurrence.schema";
 import { DrizzleTransactionData } from "@/infra/database/drizzle/schemas/drizzle-transaction.schema";
+import { BullMqTransactionDebitExpenseFixedQueue } from "@/infra/queues/bull-mq/@types/transaction-debit-expense-fixed-job";
+import { BULL_MQ_TRANSACTION_QUEUE_NAME } from "@/infra/queues/bull-mq/queue-names";
 import { faker } from "@faker-js/faker";
+import { getQueueToken } from "@nestjs/bullmq";
 import {
   FastifyAdapter,
   NestFastifyApplication,
@@ -56,6 +59,7 @@ describe("[Controller] POST /transactions/expenses", () => {
   let bankAccountFactory: BankAccountFactory;
   let transactionCategoryFactory: TransactionCategoryFactory;
   let transactionDebitExpenseFactory: TransactionDebitExpenseFactory;
+  let transactionDebitExpenseFixedQueue: BullMqTransactionDebitExpenseFixedQueue;
 
   let user: UserFactoryOutput;
   let anotherUser: UserFactoryOutput;
@@ -89,6 +93,9 @@ describe("[Controller] POST /transactions/expenses", () => {
     transactionCategoryFactory = moduleRef.get(TransactionCategoryFactory);
     transactionDebitExpenseFactory = moduleRef.get(
       TransactionDebitExpenseFactory,
+    );
+    transactionDebitExpenseFixedQueue = moduleRef.get(
+      getQueueToken(BULL_MQ_TRANSACTION_QUEUE_NAME),
     );
 
     [user, anotherUser] = await userFactory.makeAndSaveManyByAmount(2);
@@ -518,6 +525,16 @@ describe("[Controller] POST /transactions/expenses", () => {
           expect(getTransactionDateFromInstallmentSpy).toHaveBeenCalledTimes(
             input.installmentNumber,
           );
+          expect(getTransactionDateFromInstallmentSpy).toHaveBeenNthCalledWith(
+            1,
+            input.transactedAt,
+            1,
+          );
+          expect(getTransactionDateFromInstallmentSpy).toHaveBeenNthCalledWith(
+            2,
+            input.transactedAt,
+            2,
+          );
 
           const transactionRecurrencesOnDatabase =
             await drizzle.executeToGet<DrizzleTransactionRecurrenceData>(sql`
@@ -817,6 +834,16 @@ describe("[Controller] POST /transactions/expenses", () => {
           expect(getTransactionDateFromInstallmentSpy).toHaveBeenCalledTimes(
             TransactionRecurrenceFixedEntity.numberOfInitialTransactionsCreated,
           );
+          expect(getTransactionDateFromInstallmentSpy).toHaveBeenNthCalledWith(
+            1,
+            new Date(),
+            1,
+          );
+          expect(getTransactionDateFromInstallmentSpy).toHaveBeenNthCalledWith(
+            2,
+            new Date(),
+            2,
+          );
 
           const transactionRecurrencesOnDatabase =
             await drizzle.executeToGet<DrizzleTransactionRecurrenceData>(sql`
@@ -903,6 +930,45 @@ describe("[Controller] POST /transactions/expenses", () => {
               transactionDebitExpenseOnDatabase.transactedAt.getTime(),
             ).toEqual(expectedTransactionDate);
           }
+
+          const [transactionDebitExpenseFixedJobOnDatabase] =
+            await transactionDebitExpenseFixedQueue.getJobs(
+              "delayed",
+              0,
+              1,
+              true,
+            );
+
+          expect(transactionDebitExpenseFixedJobOnDatabase).toBeTruthy();
+          expect(transactionDebitExpenseFixedJobOnDatabase.name).toEqual(
+            "fixed_transaction_debit_expense_job",
+          );
+          expect(transactionDebitExpenseFixedJobOnDatabase.data).toStrictEqual({
+            id: expect.any(String),
+            bankAccountId: input.bankAccountId,
+            transactionCategoryId: expect.any(String),
+            transactionRecurrenceId: transactionRecurrenceOnDatabase.id,
+            amount: input.amount,
+            description: input.description,
+            updatedAt: null,
+            createdAt: expect.any(String),
+          });
+
+          const middleTransaction =
+            transactionDebitExpensesOnDatabase[
+              Math.floor(transactionDebitExpensesOnDatabase.length / 2)
+            ];
+          const jobDelay =
+            middleTransaction.transactedAt.getTime() - Date.now();
+
+          expect(transactionDebitExpenseFixedJobOnDatabase.delay).toEqual(
+            jobDelay,
+          );
+
+          const { every } =
+            transactionDebitExpenseFixedJobOnDatabase.opts.repeat!;
+
+          expect(every).toEqual(jobDelay * 2);
         },
       );
     });

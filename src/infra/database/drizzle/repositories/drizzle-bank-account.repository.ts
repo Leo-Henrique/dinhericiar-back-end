@@ -232,6 +232,23 @@ export class DrizzleBankAccountRepository implements BankAccountRepository {
     );
   }
 
+  async findUniqueById(id: string): Promise<BankAccount | null> {
+    const query = sql`
+      SELECT
+        *
+      FROM
+        bank_accounts
+      WHERE
+        id = ${id}
+    `;
+    const [bankAccountOnDatabase] =
+      await this.drizzle.executeToGet<DrizzleBankAccountData>(query);
+
+    if (!bankAccountOnDatabase) return null;
+
+    return BankAccountEntity.create(bankAccountOnDatabase);
+  }
+
   async countAllFromUser(
     user: User,
     { session }: { session: DrizzleSession } = { session: this.drizzle.client },

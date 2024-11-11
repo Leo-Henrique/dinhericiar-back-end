@@ -9,6 +9,7 @@ export type TransactionData = {
   amount: number;
   updatedAt: Date | null;
   createdAt: Date;
+  createdByQueue: boolean;
 };
 
 export abstract class TransactionEntity<

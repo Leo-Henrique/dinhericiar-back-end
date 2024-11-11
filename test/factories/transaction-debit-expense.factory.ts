@@ -38,7 +38,6 @@ export class TransactionDebitExpenseFactory extends Factory<TransactionDebitExpe
       bankAccountId: faker.string.uuid(),
       transactionCategoryId: faker.string.uuid(),
       transactedAt: faker.date.recent(),
-      isAccomplished: false,
       description: faker.lorem.sentence(),
       amount: faker.number.float({ min: 1, fractionDigits: 2 }),
       ...override,

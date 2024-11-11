@@ -39,6 +39,7 @@ export abstract class BankAccountRepository {
     user: User,
     options: PaginationParams & UnitOfWorkSessionOptions,
   ): Promise<BankAccount[]>;
+  abstract findUniqueById(id: string): Promise<BankAccount | null>;
   abstract countAllFromUser(
     user: User,
     options?: UnitOfWorkSessionOptions,

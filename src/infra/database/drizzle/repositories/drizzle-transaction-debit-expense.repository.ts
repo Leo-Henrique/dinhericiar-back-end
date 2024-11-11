@@ -1,16 +1,27 @@
-import { TransactionDebitExpense } from "@/domain/entities/transaction-debit-expense.entity";
+import {
+  TransactionDebitExpense,
+  TransactionDebitExpenseEntity,
+} from "@/domain/entities/transaction-debit-expense.entity";
 import { TransactionRecurrenceFixed } from "@/domain/entities/transaction-recurrence-fixed.entity";
 import { TransactionRecurrenceInstallment } from "@/domain/entities/transaction-recurrence-installment.entity";
-import { TransactionDebitExpenseRepository } from "@/domain/gateways/repositories/debit-expense-transaction.repository";
+import {
+  CreateManyWithFixedRecurrenceOptions,
+  TransactionDebitExpenseRepository,
+} from "@/domain/gateways/repositories/transaction-debit-expense.repository";
 import { Injectable } from "@nestjs/common";
+import { sql } from "drizzle-orm";
 import { DrizzleService, DrizzleSession } from "../drizzle.service";
 import { DrizzleTransactionDebitExpenseMapper } from "../mappers/drizzle-transaction-debit-expense.mapper";
+import { DrizzleTransactionRecurrenceFixedMapper } from "../mappers/drizzle-transaction-recurrence-fixed.mapper";
+import { DrizzleTransactionRecurrenceInstallmentMapper } from "../mappers/drizzle-transaction-recurrence-installment.mapper";
 import {
+  DrizzleTransactionDebitExpenseData,
   DrizzleTransactionDebitExpenseDataCreate,
   drizzleTransactionDebitExpenseTable,
 } from "../schemas/drizzle-transaction-debit-expense.schema";
 import { drizzleTransactionRecurrenceTable } from "../schemas/drizzle-transaction-recurrence.schema";
 import {
+  DrizzleTransactionData,
   DrizzleTransactionDataCreate,
   drizzleTransactionTable,
 } from "../schemas/drizzle-transaction.schema";
@@ -41,10 +52,14 @@ export class DrizzleTransactionDebitExpenseRepository
     transactionRecurrenceInstallment: TransactionRecurrenceInstallment,
     { session }: { session: DrizzleSession } = { session: this.drizzle.client },
   ): Promise<void> {
-    await session.insert(drizzleTransactionRecurrenceTable).values({
-      ...transactionRecurrenceInstallment.getRawData(),
-      type: "INSTALLMENT",
-    });
+    const drizzleTransactionRecurrenceInstallmentValues =
+      DrizzleTransactionRecurrenceInstallmentMapper.toDrizzle(
+        transactionRecurrenceInstallment,
+      );
+
+    await session
+      .insert(drizzleTransactionRecurrenceTable)
+      .values(drizzleTransactionRecurrenceInstallmentValues);
 
     const drizzleTransactionAllValues: DrizzleTransactionDataCreate[] = [];
     const drizzleTransactionDebitExpenseAllValues: DrizzleTransactionDebitExpenseDataCreate[] =
@@ -87,12 +102,23 @@ export class DrizzleTransactionDebitExpenseRepository
   async createManyWithFixedRecurrence(
     transactionDebitExpenses: TransactionDebitExpense[],
     transactionRecurrenceFixed: TransactionRecurrenceFixed,
-    { session }: { session: DrizzleSession } = { session: this.drizzle.client },
+    {
+      session,
+      createRecurrence,
+    }: CreateManyWithFixedRecurrenceOptions & { session: DrizzleSession },
   ): Promise<void> {
-    await session.insert(drizzleTransactionRecurrenceTable).values({
-      ...transactionRecurrenceFixed.getRawData(),
-      type: "FIXED",
-    });
+    session = session ?? this.drizzle.client;
+
+    if (createRecurrence) {
+      const drizzleTransactionRecurrenceFixedValues =
+        DrizzleTransactionRecurrenceFixedMapper.toDrizzle(
+          transactionRecurrenceFixed,
+        );
+
+      await session
+        .insert(drizzleTransactionRecurrenceTable)
+        .values(drizzleTransactionRecurrenceFixedValues);
+    }
 
     const drizzleTransactionAllValues: DrizzleTransactionDataCreate[] = [];
     const drizzleTransactionDebitExpenseAllValues: DrizzleTransactionDebitExpenseDataCreate[] =
@@ -130,5 +156,39 @@ export class DrizzleTransactionDebitExpenseRepository
         .insert(drizzleTransactionDebitExpenseTable)
         .values(drizzleTransactionDebitExpenseAllValuesChunk);
     }
+  }
+
+  async findUniqueLastOfFixedRecurrence(
+    transactionRecurrenceFixed: TransactionRecurrenceFixed,
+  ): Promise<TransactionDebitExpense | null> {
+    type Row = DrizzleTransactionData & DrizzleTransactionDebitExpenseData;
+
+    const query = sql`
+      SELECT
+        transactions.*,
+        transaction_debit_expenses.*
+      FROM
+        transactions
+      INNER JOIN
+        transaction_recurrences 
+      ON 
+        transaction_recurrences.id = ${transactionRecurrenceFixed.id.value}
+      INNER JOIN
+        transaction_debit_expenses
+      ON
+        transaction_debit_expenses.transaction_id = transactions.id
+      ORDER BY
+        created_at DESC
+      LIMIT 1
+    `;
+
+    const [transactionDebitExpenseOnDatabase] =
+      await this.drizzle.executeToGet<Row>(query);
+
+    if (!transactionDebitExpenseOnDatabase) return null;
+
+    return TransactionDebitExpenseEntity.create(
+      transactionDebitExpenseOnDatabase,
+    );
   }
 }

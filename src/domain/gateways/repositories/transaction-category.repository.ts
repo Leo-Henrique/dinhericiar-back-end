@@ -18,4 +18,5 @@ export abstract class TransactionCategoryRepository {
     name: string,
     user: User,
   ): Promise<TransactionCategory | null>;
+  abstract findUniqueById(id: string): Promise<TransactionCategory | null>;
 }

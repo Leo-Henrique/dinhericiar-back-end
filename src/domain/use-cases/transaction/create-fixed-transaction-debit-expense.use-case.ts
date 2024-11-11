@@ -1,5 +1,6 @@
 import { Either, left, right } from "@/core/either";
 import { UseCase } from "@/core/use-case";
+import { TransactionDebitExpenseFixedJobEntity } from "@/domain/entities/queues/transaction-debit-expense-fixed-job.entity";
 import { TransactionDebitExpenseSchemaToCreateFixed } from "@/domain/entities/schemas/transaction-debit-expense.schema";
 
 import {
@@ -17,7 +18,7 @@ import {
   ResourceNotFoundError,
 } from "@/domain/errors";
 import { BankAccountRepository } from "@/domain/gateways/repositories/bank-account.repository";
-import { TransactionDebitExpenseRepository } from "@/domain/gateways/repositories/debit-expense-transaction.repository";
+import { TransactionDebitExpenseFixedJobRepository } from "@/domain/gateways/repositories/queues/transaction-debit-expense-job.repository";
 import { TransactionCategoryRepository } from "@/domain/gateways/repositories/transaction-category.repository";
 import { TransactionDebitExpenseRepository } from "@/domain/gateways/repositories/transaction-debit-expense.repository";
 import { UnitOfWork } from "@/domain/gateways/unit-of-work";
@@ -44,6 +45,7 @@ export class CreateFixedTransactionDebitExpenseUseCase extends UseCase<
     private readonly bankAccountRepository: BankAccountRepository,
     private readonly transactionCategoryRepository: TransactionCategoryRepository,
     private readonly transactionDebitExpenseRepository: TransactionDebitExpenseRepository,
+    private readonly transactionDebitExpenseFixedJobRepository: TransactionDebitExpenseFixedJobRepository,
     private readonly unitOfWork: UnitOfWork,
   ) {
     super();
@@ -144,7 +146,35 @@ export class CreateFixedTransactionDebitExpenseUseCase extends UseCase<
       await this.transactionDebitExpenseRepository.createManyWithFixedRecurrence(
         transactionDebitExpenses,
         transactionRecurrenceFixed,
-        { session },
+        {
+          session,
+          createRecurrence: true,
+        },
+      );
+
+      const middleTransactionDebitExpenseIndex = Math.floor(
+        transactionDebitExpenses.length / 2,
+      );
+      const middleTransactionDebitExpense =
+        transactionDebitExpenses[middleTransactionDebitExpenseIndex];
+      const transactionDebitExpenseFixedJob =
+        TransactionDebitExpenseFixedJobEntity.create({
+          bankAccountId,
+          transactionCategoryId: transactionCategory.id.value,
+          transactionRecurrenceId: transactionRecurrenceFixed.id.value,
+          amount,
+          description,
+        });
+
+      const executionIntervalInMillisecondsBetweenEachJob =
+        (middleTransactionDebitExpense.transactedAt.getTime() - Date.now()) * 2;
+
+      await this.transactionDebitExpenseFixedJobRepository.createRepeatable(
+        transactionDebitExpenseFixedJob,
+        {
+          firstJobExecutionDate: middleTransactionDebitExpense.transactedAt,
+          executionIntervalInMillisecondsBetweenEachJob,
+        },
       );
     });
 

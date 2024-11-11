@@ -37,4 +37,5 @@ export const drizzleTransactionTable = ddl.pgTable("transactions", {
   description: ddl.varchar("description").notNull(),
   updatedAt: ddl.timestamp("updated_at", { withTimezone: true }),
   createdAt: ddl.timestamp("created_at", { withTimezone: true }).notNull(),
+  createdByQueue: ddl.boolean("created_by_queue").notNull(),
 } satisfies Record<TransactionFields, ddl.PgColumnBuilderBase>);

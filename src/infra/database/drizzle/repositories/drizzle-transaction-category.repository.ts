@@ -64,4 +64,23 @@ export class DrizzleTransactionCategoryRepository
 
     return TransactionCategoryEntity.create(transactionCategoryOnDatabase);
   }
+
+  async findUniqueById(id: string): Promise<TransactionCategory | null> {
+    type Row = DrizzleTransactionCategoryData;
+
+    const query = sql`
+      SELECT
+        *
+      FROM
+        transaction_categories
+      WHERE
+        id = ${id}
+    `;
+    const [transactionCategoryOnDatabase] =
+      await this.drizzle.executeToGet<Row>(query);
+
+    if (!transactionCategoryOnDatabase) return null;
+
+    return TransactionCategoryEntity.create(transactionCategoryOnDatabase);
+  }
 }
